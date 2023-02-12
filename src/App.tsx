@@ -7,7 +7,6 @@ import ReactMarkdown from "react-markdown";
 import "prismjs/components/prism-markdown";
 import "prismjs/themes/prism.css";
 import rehypeRaw from "rehype-raw";
-import rehypeStringify from "rehype-stringify";
 import remarkMermaidPlugin from "./mermaid";
 
 function App() {
@@ -71,7 +70,7 @@ function App() {
         <ReactMarkdown
           children={code}
           remarkPlugins={[remarkMermaidPlugin]}
-          rehypePlugins={[rehypeRaw, rehypeStringify]}
+          rehypePlugins={[rehypeRaw]}
         />
       </div>
     </div>
