@@ -7,13 +7,18 @@
     "@types/react": "^18.0.28",
     "@types/react-dom": "^18.0.10",
     "dedent": "^0.7.0",
+    "mermaid": "^9.3.0",
     "prismjs": "^1.29.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-markdown": "^8.0.5",
     "react-scripts": "5.0.1",
     "react-simple-code-editor": "^0.13.1",
+    "rehype-parse": "^8.0.4",
+    "rehype-raw": "^6.1.1",
+    "rehype-stringify": "^9.0.3",
     "typescript": "^4.9.5",
+    "unist-util-visit": "^4.1.2",
     "web-vitals": "^2.1.4"
   },
   "scripts": {

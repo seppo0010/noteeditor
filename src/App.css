@@ -1,19 +1,21 @@
-html, body, #root {
-    height: 100%;
+html,
+body,
+#root {
+  height: 100%;
 }
 
 #app {
-    display: flex;
+  display: flex;
 }
 
 #editor {
-    background: #ccc;
-    font-family: "Fira code", "Fira Mono", monospace;
-    font-size: 12;
-    width: 50%;
-    flex: 1;
+  background: #ccc;
+  font-family: "Fira code", "Fira Mono", monospace;
+  font-size: 12;
+  width: 50%;
+  flex: 1;
 }
 #preview {
-    width: 50%;
-    padding: 10px;
+  width: 50%;
+  padding: 10px;
 }
