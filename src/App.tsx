@@ -3,6 +3,7 @@ import './App.css';
 import dedent from "dedent";
 import Editor from 'react-simple-code-editor';
 import { languages, highlight } from 'prismjs';
+import ReactMarkdown from 'react-markdown'
 import 'prismjs/components/prism-clike';
 import 'prismjs/components/prism-markdown';
 import 'prismjs/themes/prism.css'; //Example style, you can use another
@@ -27,7 +28,7 @@ function App() {
   1. item a
   2. item b
 
-  \`\`\`
+  \`\`\`mermaid
   mindmap
   root((mindmap))
     Origins
@@ -48,16 +49,16 @@ function App() {
   \`\`\`
   `);
   return (
-    <Editor
-      value={code}
-      onValueChange={code => setCode(code)}
-      highlight={code => highlight(code, languages.markdown, 'md')}
-      padding={10}
-      style={{
-        fontFamily: '"Fira code", "Fira Mono", monospace',
-        fontSize: 12,
-      }}
-    />
+    <div id='app'>
+      <Editor
+        value={code}
+        onValueChange={code => setCode(code)}
+        highlight={code => highlight(code, languages.markdown, 'md')}
+        padding={10}
+        id='editor'
+      />
+      <div id='preview'><ReactMarkdown children={code} /></div>
+    </div>
   );
 }
 
