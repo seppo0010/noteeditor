@@ -33,6 +33,7 @@ import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import GitHubIcon from "@mui/icons-material/GitHub";
 import { Octokit } from "@octokit/rest";
 import { UserContext, UserOpt } from "./user";
+
 const drawerWidth = 240;
 const Search = styled("div")(({ theme }) => ({
   position: "relative",
@@ -251,6 +252,18 @@ export default function Frame() {
                   <GitHubIcon />
                 </ListItemIcon>
                 <ListItemText primary="Login to GitHub" />
+              </ListItemButton>
+            </ListItem>
+          )}
+          {user.loggedIn !== undefined && (
+            <ListItem disablePadding>
+              <ListItemButton
+                onClick={() => setUser({ ...user, loggedIn: undefined })}
+              >
+                <ListItemIcon>
+                  <GitHubIcon />
+                </ListItemIcon>
+                <ListItemText primary="Logout from GitHub" />
               </ListItemButton>
             </ListItem>
           )}
