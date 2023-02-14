@@ -169,8 +169,9 @@ function LoginToGitHub({
           {loading && <CircularProgress />}
         </DialogContent>
         <DialogActions>
-          <Button onClick={close}>Cancel</Button>
+          <Button onClick={close} disabled={loading}>Cancel</Button>
           <Button
+            disabled={loading}
             onClick={() => {
               login(pat);
             }}
