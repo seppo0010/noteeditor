@@ -9,6 +9,7 @@ import Markdown from "./Markdown";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import Frame from "./Frame";
 import { UserProvider } from "./user";
+import { FileProvider } from "./file";
 
 const darkTheme = createTheme({
   palette: {
@@ -60,21 +61,23 @@ function App() {
   `);
   return (
     <UserProvider>
-      <ThemeProvider theme={darkTheme}>
-        <Frame />
-        <div id="app">
-          <Editor
-            value={code}
-            onValueChange={(code) => setCode(code)}
-            highlight={(code) => highlight(code, languages.markdown, "md")}
-            padding={10}
-            id="editor"
-          />
-          <div id="preview">
-            <Markdown code={code} />
+      <FileProvider>
+        <ThemeProvider theme={darkTheme}>
+          <Frame />
+          <div id="app">
+            <Editor
+              value={code}
+              onValueChange={(code) => setCode(code)}
+              highlight={(code) => highlight(code, languages.markdown, "md")}
+              padding={10}
+              id="editor"
+            />
+            <div id="preview">
+              <Markdown code={code} />
+            </div>
           </div>
-        </div>
-      </ThemeProvider>
+        </ThemeProvider>
+      </FileProvider>
     </UserProvider>
   );
 }

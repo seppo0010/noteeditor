@@ -1,4 +1,10 @@
-import React, { Dispatch, SetStateAction, useContext, useState } from "react";
+import React, {
+  Dispatch,
+  SetStateAction,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 import "./App.css";
 import "prismjs/components/prism-markdown";
 import "prismjs/themes/prism.css";
@@ -29,11 +35,13 @@ import {
   Link,
   CircularProgress,
   Avatar,
+  Autocomplete,
 } from "@mui/material";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import GitHubIcon from "@mui/icons-material/GitHub";
 import { Octokit } from "@octokit/rest";
 import { UserContext, UserOpt } from "./user";
+import { FileContext } from "./file";
 
 const drawerWidth = 240;
 const Search = styled("div")(({ theme }) => ({
@@ -171,7 +179,9 @@ function LoginToGitHub({
           {loading && <CircularProgress />}
         </DialogContent>
         <DialogActions>
-          <Button onClick={close} disabled={loading}>Cancel</Button>
+          <Button onClick={close} disabled={loading}>
+            Cancel
+          </Button>
           <Button
             disabled={loading}
             onClick={() => {
@@ -186,6 +196,10 @@ function LoginToGitHub({
   );
 }
 
+interface Repository {
+  owner: string;
+  name: string;
+}
 export default function Frame() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [loginToGitHubOpen, setLoginToGitHubOpen] = useState(false);
@@ -194,6 +208,29 @@ export default function Frame() {
     throw new Error("null user context");
   }
   const { user, setUser } = userContext;
+  const fileContext = useContext(FileContext);
+  if (fileContext === null) {
+    throw new Error("null file context");
+  }
+  const { file, setFile } = fileContext;
+
+  const [repositories, setRepositories] = useState<Repository[]>([]);
+  const [loadingRepos, setLoadingRepos] = useState(false);
+  useEffect(() => {
+    if (!user.loggedIn) return;
+    (async () => {
+      setLoadingRepos(true);
+      const octokit = new Octokit({ auth: user.loggedIn?.auth });
+      setRepositories(
+        (await octokit.paginate("GET /user/repos")).map((repo) => ({
+          owner: repo.owner.login,
+          name: repo.name,
+        }))
+      );
+      setLoadingRepos(false);
+    })();
+  }, [user]);
+  const [repositoryInputValue, setRepositoryInputValue] = React.useState("");
 
   return (
     <>
@@ -226,7 +263,11 @@ export default function Frame() {
               inputProps={{ "aria-label": "search" }}
             />
           </Search>
-          {user.loggedIn?.avatar ? <Avatar alt="You" src={user.loggedIn.avatar} /> : <Avatar />}
+          {user.loggedIn?.avatar ? (
+            <Avatar alt="You" src={user.loggedIn.avatar} />
+          ) : (
+            <Avatar />
+          )}
         </Toolbar>
       </AppBar>
       <Drawer
@@ -270,6 +311,31 @@ export default function Frame() {
                 <ListItemText primary="Logout from GitHub" />
               </ListItemButton>
             </ListItem>
+          )}
+          {user.loggedIn && !loadingRepos && repositories.length > 0 && (
+            <Autocomplete
+              getOptionLabel={(option) => `${option.owner}/${option.name}`}
+              disablePortal
+              options={repositories}
+              value={file.repository}
+              inputValue={repositoryInputValue}
+              onInputChange={(event, newInputValue) => {
+                setRepositoryInputValue(newInputValue);
+              }}
+              isOptionEqualToValue={(option, value) =>
+                option.name === value.name && option.owner === value.owner
+              }
+              onChange={(event, newValue: Repository | null) => {
+                setFile({
+                  ...file,
+                  repository: newValue === null ? undefined : newValue,
+                });
+              }}
+              fullWidth
+              renderInput={(params: any) => (
+                <TextField {...params} label="Repository" />
+              )}
+            />
           )}
         </List>
         <LoginToGitHub
