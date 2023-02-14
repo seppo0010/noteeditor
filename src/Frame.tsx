@@ -39,7 +39,7 @@ import {
 } from "@mui/material";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import { Octokit } from "@octokit/rest";
-import { UserContext, UserOpt } from "./user";
+import { UserContext, UserContextInterface, UserOpt } from "./user";
 import { FileContext } from "./file";
 import { Logout } from "@mui/icons-material";
 
@@ -196,13 +196,103 @@ function LoginToGitHub({
   );
 }
 
+function LoginLogoutAvatar({ user, setUser }: UserContextInterface) {
+  const [
+    accountSettingsAnchorEl,
+    setAccountSettingsAnchorEl,
+  ] = React.useState<null | HTMLElement>(null);
+  const [loginToGitHubOpen, setLoginToGitHubOpen] = useState(false);
+  return user.loggedIn?.avatar ? (
+    <>
+      <Tooltip title="Account settings">
+        <IconButton
+          onClick={(event) => setAccountSettingsAnchorEl(event?.currentTarget)}
+          size="small"
+          sx={{ ml: 2 }}
+          aria-controls={
+            accountSettingsAnchorEl !== null ? "account-menu" : undefined
+          }
+          aria-haspopup="true"
+          aria-expanded={accountSettingsAnchorEl !== null ? "true" : undefined}
+        >
+          <Avatar alt="You" src={user.loggedIn.avatar} />
+        </IconButton>
+      </Tooltip>
+      <Menu
+        anchorEl={accountSettingsAnchorEl}
+        open={accountSettingsAnchorEl !== null}
+        onClose={() => setAccountSettingsAnchorEl(null)}
+        onClick={() => setAccountSettingsAnchorEl(null)}
+        PaperProps={{
+          elevation: 0,
+          sx: {
+            overflow: "visible",
+            filter: "drop-shadow(0px 2px 8px rgba(0,0,0,0.32))",
+            mt: 1.5,
+            "& .MuiAvatar-root": {
+              width: 32,
+              height: 32,
+              ml: -0.5,
+              mr: 1,
+            },
+            "&:before": {
+              content: '""',
+              display: "block",
+              position: "absolute",
+              top: 0,
+              right: 14,
+              width: 10,
+              height: 10,
+              bgcolor: "background.paper",
+              transform: "translateY(-50%) rotate(45deg)",
+              zIndex: 0,
+            },
+          },
+        }}
+        transformOrigin={{ horizontal: "right", vertical: "top" }}
+        anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
+      >
+        <MenuItem
+          onClick={() => {
+            setUser({ ...user, loggedIn: undefined });
+            setAccountSettingsAnchorEl(null);
+          }}
+        >
+          <ListItemIcon>
+            <Logout fontSize="small" />
+          </ListItemIcon>
+          Logout
+        </MenuItem>
+      </Menu>
+    </>
+  ) : (
+    <>
+      <Tooltip title="Login">
+        <IconButton
+          onClick={() => setLoginToGitHubOpen(true)}
+          size="small"
+          sx={{ ml: 2 }}
+          aria-haspopup="true"
+          aria-expanded={loginToGitHubOpen ? "true" : undefined}
+        >
+          <Avatar />
+        </IconButton>
+      </Tooltip>
+      <LoginToGitHub
+        isOpen={loginToGitHubOpen}
+        close={() => setLoginToGitHubOpen(false)}
+        setUser={setUser}
+      />
+    </>
+  );
+}
 interface Repository {
   owner: string;
   name: string;
 }
+
 export default function Frame() {
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [loginToGitHubOpen, setLoginToGitHubOpen] = useState(false);
   const userContext = useContext(UserContext);
   if (userContext === null) {
     throw new Error("null user context");
@@ -231,10 +321,6 @@ export default function Frame() {
     })();
   }, [user]);
   const [repositoryInputValue, setRepositoryInputValue] = useState("");
-  const [
-    accountSettingsAnchorEl,
-    setAccountSettingsAnchorEl,
-  ] = React.useState<null | HTMLElement>(null);
 
   return (
     <>
@@ -267,88 +353,7 @@ export default function Frame() {
               inputProps={{ "aria-label": "search" }}
             />
           </Search>
-          {user.loggedIn?.avatar ? (
-            <>
-              <Tooltip title="Account settings">
-                <IconButton
-                  onClick={(event) =>
-                    setAccountSettingsAnchorEl(event?.currentTarget)
-                  }
-                  size="small"
-                  sx={{ ml: 2 }}
-                  aria-controls={
-                    accountSettingsAnchorEl !== null
-                      ? "account-menu"
-                      : undefined
-                  }
-                  aria-haspopup="true"
-                  aria-expanded={
-                    accountSettingsAnchorEl !== null ? "true" : undefined
-                  }
-                >
-                  <Avatar alt="You" src={user.loggedIn.avatar} />
-                </IconButton>
-              </Tooltip>
-              <Menu
-                anchorEl={accountSettingsAnchorEl}
-                open={accountSettingsAnchorEl !== null}
-                onClose={() => setAccountSettingsAnchorEl(null)}
-                onClick={() => setAccountSettingsAnchorEl(null)}
-                PaperProps={{
-                  elevation: 0,
-                  sx: {
-                    overflow: "visible",
-                    filter: "drop-shadow(0px 2px 8px rgba(0,0,0,0.32))",
-                    mt: 1.5,
-                    "& .MuiAvatar-root": {
-                      width: 32,
-                      height: 32,
-                      ml: -0.5,
-                      mr: 1,
-                    },
-                    "&:before": {
-                      content: '""',
-                      display: "block",
-                      position: "absolute",
-                      top: 0,
-                      right: 14,
-                      width: 10,
-                      height: 10,
-                      bgcolor: "background.paper",
-                      transform: "translateY(-50%) rotate(45deg)",
-                      zIndex: 0,
-                    },
-                  },
-                }}
-                transformOrigin={{ horizontal: "right", vertical: "top" }}
-                anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
-              >
-                <MenuItem
-                  onClick={() => {
-                    setUser({ ...user, loggedIn: undefined });
-                    setAccountSettingsAnchorEl(null);
-                  }}
-                >
-                  <ListItemIcon>
-                    <Logout fontSize="small" />
-                  </ListItemIcon>
-                  Logout
-                </MenuItem>
-              </Menu>
-            </>
-          ) : (
-            <Tooltip title="Login">
-              <IconButton
-                onClick={() => setLoginToGitHubOpen(true)}
-                size="small"
-                sx={{ ml: 2 }}
-                aria-haspopup="true"
-                aria-expanded={loginToGitHubOpen ? "true" : undefined}
-              >
-                <Avatar />
-              </IconButton>
-            </Tooltip>
-          )}
+          <LoginLogoutAvatar user={user} setUser={setUser} />
         </Toolbar>
       </AppBar>
       <Drawer
@@ -397,11 +402,6 @@ export default function Frame() {
             />
           )}
         </List>
-        <LoginToGitHub
-          isOpen={loginToGitHubOpen}
-          close={() => setLoginToGitHubOpen(false)}
-          setUser={setUser}
-        />
       </Drawer>
     </>
   );
