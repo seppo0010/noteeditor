@@ -23,6 +23,7 @@ import { Octokit } from "@octokit/rest";
 import { UserContext } from "./user";
 import { FileContext } from "./file";
 import { LoginLogoutAvatar } from "./loginlogout";
+import { Repository } from "./repository";
 
 const drawerWidth = 240;
 const Search = styled("div")(({ theme }) => ({
@@ -97,10 +98,6 @@ const AppBar = styled(MuiAppBar, {
     }),
   }),
 }));
-interface Repository {
-  owner: string;
-  name: string;
-}
 
 export default function Frame() {
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -109,29 +106,6 @@ export default function Frame() {
     throw new Error("null user context");
   }
   const { user, setUser } = userContext;
-  const fileContext = useContext(FileContext);
-  if (fileContext === null) {
-    throw new Error("null file context");
-  }
-  const { file, setFile } = fileContext;
-
-  const [repositories, setRepositories] = useState<Repository[]>([]);
-  const [loadingRepos, setLoadingRepos] = useState(false);
-  useEffect(() => {
-    if (!user.loggedIn) return;
-    (async () => {
-      setLoadingRepos(true);
-      const octokit = new Octokit({ auth: user.loggedIn?.auth });
-      setRepositories(
-        (await octokit.paginate("GET /user/repos")).map((repo) => ({
-          owner: repo.owner.login,
-          name: repo.name,
-        }))
-      );
-      setLoadingRepos(false);
-    })();
-  }, [user]);
-  const [repositoryInputValue, setRepositoryInputValue] = useState("");
 
   return (
     <>
@@ -187,31 +161,7 @@ export default function Frame() {
         </DrawerHeader>
         <Divider />
         <List>
-          {user.loggedIn && !loadingRepos && repositories.length > 0 && (
-            <Autocomplete
-              getOptionLabel={(option) => `${option.owner}/${option.name}`}
-              disablePortal
-              options={repositories}
-              value={file.repository}
-              inputValue={repositoryInputValue}
-              onInputChange={(event, newInputValue) => {
-                setRepositoryInputValue(newInputValue);
-              }}
-              isOptionEqualToValue={(option, value) =>
-                option.name === value.name && option.owner === value.owner
-              }
-              onChange={(event, newValue: Repository | null) => {
-                setFile({
-                  ...file,
-                  repository: newValue === null ? undefined : newValue,
-                });
-              }}
-              fullWidth
-              renderInput={(params: any) => (
-                <TextField {...params} label="Repository" />
-              )}
-            />
-          )}
+          <Repository />
         </List>
       </Drawer>
     </>
