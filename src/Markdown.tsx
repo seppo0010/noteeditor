@@ -9,17 +9,6 @@ import { useAsync } from "react-use";
 import { html } from "property-information";
 import { childrenToReact } from "./ast-to-react";
 
-/*
-const processor = unified()
-.use(remarkParse)
-.use(options.remarkPlugins || [])
-.use(remarkRehype, {
-  ...options.remarkRehypeOptions,
-  allowDangerousHtml: true
-})
-.use(options.rehypePlugins || [])
-.use(rehypeFilter, options)
-*/
 const processor = unified()
   .use(remarkParse)
   .use([remarkMermaidPlugin])
@@ -41,7 +30,6 @@ export default function Markdown({ code }: { code: string }): JSX.Element {
   if (!value) {
     return <>Unexpected...</>;
   }
-  console.log({ value });
   return React.createElement(
     React.Fragment,
     {},
