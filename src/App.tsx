@@ -8,6 +8,7 @@ import "prismjs/themes/prism.css";
 import Markdown from "./Markdown";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import Frame from "./Frame";
+import { UserProvider } from "./user";
 
 const darkTheme = createTheme({
   palette: {
@@ -58,21 +59,23 @@ function App() {
   \`\`\`
   `);
   return (
-    <ThemeProvider theme={darkTheme}>
-      <Frame />
-      <div id="app">
-        <Editor
-          value={code}
-          onValueChange={(code) => setCode(code)}
-          highlight={(code) => highlight(code, languages.markdown, "md")}
-          padding={10}
-          id="editor"
-        />
-        <div id="preview">
-          <Markdown code={code} />
+    <UserProvider>
+      <ThemeProvider theme={darkTheme}>
+        <Frame />
+        <div id="app">
+          <Editor
+            value={code}
+            onValueChange={(code) => setCode(code)}
+            highlight={(code) => highlight(code, languages.markdown, "md")}
+            padding={10}
+            id="editor"
+          />
+          <div id="preview">
+            <Markdown code={code} />
+          </div>
         </div>
-      </div>
-    </ThemeProvider>
+      </ThemeProvider>
+    </UserProvider>
   );
 }
 
