@@ -3,11 +3,9 @@ import "./App.css";
 import dedent from "dedent";
 import Editor from "react-simple-code-editor";
 import { languages, highlight } from "prismjs";
-import ReactMarkdown from "react-markdown";
 import "prismjs/components/prism-markdown";
 import "prismjs/themes/prism.css";
-import rehypeRaw from "rehype-raw";
-import remarkMermaidPlugin from "./mermaid";
+import Markdown from "./Markdown";
 
 function App() {
   const [code, setCode] = React.useState(dedent`
@@ -29,32 +27,23 @@ function App() {
   2. item b
 
   \`\`\`mermaid
-  ---
-  title: Animal example
-  ---
-  classDiagram
-      note "From Duck till Zebra"
-      Animal <|-- Duck
-      note for Duck "can fly\ncan swim\ncan dive\ncan help in debugging"
-      Animal <|-- Fish
-      Animal <|-- Zebra
-      Animal : +int age
-      Animal : +String gender
-      Animal: +isMammal()
-      Animal: +mate()
-      class Duck{
-          +String beakColor
-          +swim()
-          +quack()
-      }
-      class Fish{
-          -int sizeInFeet
-          -canEat()
-      }
-      class Zebra{
-          +bool is_wild
-          +run()
-      }
+  mindmap
+    root((mindmap))
+      Origins
+        Long history
+        ::icon(fa fa-book)
+        Popularisation
+          British popular psychology author Tony Buzan
+      Research
+        On effectiveness<br/>and features
+        On Automatic creation
+          Uses
+              Creative techniques
+              Strategic planning
+              Argument mapping
+      Tools
+        Pen and paper
+        Mermaid
   \`\`\`
   `);
   return (
@@ -67,11 +56,7 @@ function App() {
         id="editor"
       />
       <div id="preview">
-        <ReactMarkdown
-          children={code}
-          remarkPlugins={[remarkMermaidPlugin]}
-          rehypePlugins={[rehypeRaw]}
-        />
+        <Markdown code={code} />
       </div>
     </div>
   );
