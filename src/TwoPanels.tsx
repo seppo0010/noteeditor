@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import "./App.css";
 import Editor from "react-simple-code-editor";
 import { languages, highlight } from "prismjs";
@@ -58,16 +58,33 @@ export default function TwoPanels() {
       setCode(content.innerContent.text ?? "");
     }
   }, [content, loadedContent]);
+  const editorRef = useRef<HTMLDivElement | null>(null);
+  const previewRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    if (!editorRef?.current || !previewRef?.current) {
+      return;
+    }
+    const editorEl = editorRef.current;
+    const previewEl = previewRef.current;
+    const onscroll = (event: Event) => { console.log(editorEl.scrollTop, previewEl.scrollTop) }
+    editorEl.addEventListener('scroll', onscroll);
+    previewEl.addEventListener('scroll', onscroll);
+    return () => {
+      editorEl.removeEventListener('scroll', onscroll);
+      previewEl.removeEventListener('scroll', onscroll);
+    };
+  }, [editorRef, previewRef])
   return (
     <div id="app">
-      <Editor
-        value={code}
-        onValueChange={(code) => setCode(code)}
-        highlight={(code) => highlight(code, languages.markdown, "md")}
-        padding={10}
-        id="editor"
-      />
-      <div id="preview">
+      <div id="editor" ref={editorRef}>
+        <Editor
+          value={code}
+          onValueChange={(code) => setCode(code)}
+          highlight={(code) => highlight(code, languages.markdown, "md")}
+          padding={10}
+        />
+      </div>
+      <div id="preview" ref={previewRef}>
         <Markdown code={code} />
       </div>
     </div>

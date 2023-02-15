@@ -9,6 +9,7 @@ export interface RemarkMermaidOptions {}
 const remarkMermaid: Pluggable = function remarkMermaid() {
   return (ast, file, next) => {
     const promises: Promise<any>[] = [];
+    console.log(ast);
     visit(ast, { type: "code", lang: "mermaid" }, (node, index, parent) => {
       const code = `${node.value}`.trim();
       const id = "mermaid" + Math.random().toString(36).slice(2);
