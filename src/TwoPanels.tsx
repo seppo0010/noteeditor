@@ -58,8 +58,11 @@ export default function TwoPanels() {
       setCode(content.innerContent.text ?? "");
     }
   }, [content, loadedContent]);
+
   const editorRef = useRef<HTMLDivElement | null>(null);
   const previewRef = useRef<HTMLDivElement | null>(null);
+  const positioningRef = useRef<HTMLPreElement | null>(null);
+
   useEffect(() => {
     if (!editorRef?.current || !previewRef?.current) {
       return;
@@ -74,9 +77,31 @@ export default function TwoPanels() {
       previewEl.removeEventListener('scroll', onscroll);
     };
   }, [editorRef, previewRef])
+
+  useEffect(() => {
+    if (!editorRef?.current || !positioningRef?.current) {
+      return;
+    }
+    var targetNode = positioningRef.current;
+    const styles = window.getComputedStyle(editorRef.current.getElementsByTagName('textarea')[0]);
+    if (styles.cssText !== '') {
+        targetNode.style.cssText = styles.cssText;
+    } else {
+        const cssText = Object.values(styles).reduce(
+            (css, propertyName) =>
+                `${css}${propertyName}:${styles.getPropertyValue(
+                    propertyName
+                )};`
+        );
+        targetNode.style.cssText = cssText
+    }
+    targetNode.style.visibility = 'hidden';
+  }, [editorRef, positioningRef])
+
   return (
     <div id="app">
       <div id="editor" ref={editorRef}>
+        <pre ref={positioningRef}>{code}</pre>
         <Editor
           value={code}
           onValueChange={(code) => setCode(code)}
@@ -85,7 +110,7 @@ export default function TwoPanels() {
         />
       </div>
       <div id="preview" ref={previewRef}>
-        <Markdown code={code} />
+        <Markdown code={code} positioningEl={positioningRef?.current} />
       </div>
     </div>
   );

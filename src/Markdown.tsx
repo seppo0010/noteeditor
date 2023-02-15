@@ -1,5 +1,5 @@
 import React from "react";
-import { unified } from "unified";
+import { Pluggable, unified } from "unified";
 import remarkParse from "remark-parse";
 import remarkRehype from "remark-rehype";
 import rehypeRaw from "rehype-raw";
@@ -9,13 +9,42 @@ import { useAsync } from "react-use";
 import { html } from "property-information";
 import { childrenToReact } from "./ast-to-react";
 
-const processor = unified()
-  .use(remarkParse)
-  .use([remarkMermaidPlugin])
-  .use(remarkRehype, { allowDangerousHtml: true })
-  .use([rehypeRaw]);
+interface Node {
+  children?: Node[];
+  position: { start: { offset: number }, end: { offset: number }};
+  data?: { hProperties?: Record<string, unknown> };
+}
 
-export default function Markdown({ code }: { code: string }): JSX.Element {
+const addBoundingBox = function (positionEl: HTMLPreElement | null): Pluggable {
+  const addPositionRecursively = (node: Node) => {
+    const range = document.createRange();
+    range.setStart(positionEl!.childNodes[0], node.position.start.offset);
+    range.setEnd(positionEl!.childNodes[0], node.position.end.offset);
+    node.data = node.data ?? {}
+    node.data.hProperties = node.data.hProperties ?? {}
+    const rect = range.getBoundingClientRect();
+    node.data.hProperties['data-top'] = rect.top;
+    node.data.hProperties['data-height'] = rect.height;
+    node.children?.forEach((child: Node) => addPositionRecursively(child));
+  }
+  return () => {
+    return (ast: Node, file, next) => {
+      if (positionEl) {
+        addPositionRecursively(ast);
+      }
+      next();
+    };
+  }
+}
+
+export default function Markdown({ code, positioningEl }: { code: string, positioningEl: HTMLPreElement | null }): JSX.Element {
+  const processor = unified()
+    .use(remarkParse)
+    .use([addBoundingBox(positioningEl)])
+    .use([remarkMermaidPlugin])
+    .use(remarkRehype, { allowDangerousHtml: true })
+    .use([rehypeRaw]);
+
   const { value, loading, error } = useAsync(async () => {
     const file = new VFile();
     file.value = code;
