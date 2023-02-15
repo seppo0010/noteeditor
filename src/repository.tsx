@@ -8,28 +8,28 @@ import {
   ListItemButton,
   ListItemText,
   ListItemIcon,
+  ListItem,
+  CircularProgress,
 } from "@mui/material";
 import { Octokit } from "@octokit/rest";
 import { FileContext } from "./file";
-import { UserContext } from "./user";
+import { UserContext, UserOpt } from "./user";
 import EditIcon from "@mui/icons-material/Edit";
+import { useAsync } from "react-use";
 
 interface Repo {
   owner: string;
   name: string;
 }
 
-function PickRepository({ onDone }: { onDone: () => void }) {
-  const userContext = useContext(UserContext);
-  if (userContext === null) {
-    throw new Error("null user context");
-  }
-  const { user } = userContext;
-  const fileContext = useContext(FileContext);
-  if (fileContext === null) {
-    throw new Error("null file context");
-  }
-  const { file, setFile } = fileContext;
+function PickRepository({
+  onDone,
+  user,
+}: {
+  user: UserOpt;
+  onDone: () => void;
+}) {
+  const { file, setFile } = useContext(FileContext)!;
   const [repositories, setRepositories] = useState<Repo[]>([]);
   const [loadingRepos, setLoadingRepos] = useState(false);
   useEffect(() => {
@@ -81,28 +81,98 @@ function PickRepository({ onDone }: { onDone: () => void }) {
   );
 }
 
-export function Repository() {
-  const fileContext = useContext(FileContext);
-  if (fileContext === null) {
-    throw new Error("null file context");
+function Tree({
+  loading,
+  error,
+  value,
+  onPath,
+}: {
+  loading: boolean;
+  error?: Error;
+  value?: { path: string }[];
+  onPath: (path: string) => void;
+}) {
+  if (loading) {
+    return <CircularProgress />;
   }
-  const { file } = fileContext;
-  const [change, setChange] = useState(false);
-  if (change) {
-    return <PickRepository onDone={() => setChange(false)} />;
+  if (error) {
+    return <>{error?.message ?? "Unexpected error"}</>;
   }
   return (
-    <ListItemButton onClick={() => setChange(true)}>
-      <ListItemIcon>
-        <EditIcon />
-      </ListItemIcon>
-      <ListItemText
-        primary={
-          file.repository
-            ? `${file.repository.owner}/${file.repository.name}`
-            : "No repository selected"
-        }
+    <>
+      {(value || []).map(({ path }) => (
+        <ListItem
+          key={path}
+          onClick={() => {
+            onPath(path);
+          }}
+        >
+          <ListItemText primary={path} />
+        </ListItem>
+      ))}
+    </>
+  );
+}
+
+export function Repository({ onClose }: { onClose: () => void }) {
+  const { file, setFile } = useContext(FileContext)!;
+  const { user } = useContext(UserContext)!;
+  const treeState = useAsync(async () => {
+    if (!file.repository || !user.loggedIn) return;
+    const octokit = new Octokit({ auth: user.loggedIn?.auth });
+    const [owner, repo] = [file.repository.owner, file.repository.name];
+    const {
+      data: { default_branch },
+    } = await octokit.repos.get({ owner, repo });
+    const branch = await octokit.request(
+      "GET /repos/{owner}/{repo}/branches/{branch}",
+      {
+        owner,
+        repo,
+        branch: default_branch,
+      }
+    );
+    const {
+      data: { tree },
+    } = await octokit.request(
+      "GET /repos/{owner}/{repo}/git/trees/{tree_sha}?recursive=true",
+      {
+        owner,
+        repo,
+        tree_sha: branch.data.commit.sha,
+      }
+    );
+    return tree.filter(({ type }: { type: unknown }) => type === "blob");
+  }, [file, user]);
+
+  const [change, setChange] = useState(false);
+  if (change) {
+    return <PickRepository onDone={() => setChange(false)} user={user} />;
+  }
+
+  return (
+    <>
+      <ListItem>
+        <ListItemButton onClick={() => setChange(true)}>
+          <ListItemIcon>
+            <EditIcon />
+          </ListItemIcon>
+          <ListItemText
+            primary={
+              file.repository
+                ? `${file.repository.owner}/${file.repository.name}`
+                : "No repository selected"
+            }
+          />
+        </ListItemButton>
+      </ListItem>
+      <Tree
+        {...treeState}
+        onPath={(path: string) => {
+          setFile({ ...file, path });
+          onClose();
+        }}
       />
-    </ListItemButton>
+    </>
   );
 }

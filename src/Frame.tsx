@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext, useState } from "react";
 import "./App.css";
 import "prismjs/components/prism-markdown";
 import "prismjs/themes/prism.css";
@@ -15,13 +15,9 @@ import {
   Divider,
   List,
   AppBarProps as MuiAppBarProps,
-  TextField,
-  Autocomplete,
 } from "@mui/material";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
-import { Octokit } from "@octokit/rest";
 import { UserContext } from "./user";
-import { FileContext } from "./file";
 import { LoginLogoutAvatar } from "./loginlogout";
 import { Repository } from "./repository";
 
@@ -101,11 +97,7 @@ const AppBar = styled(MuiAppBar, {
 
 export default function Frame() {
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const userContext = useContext(UserContext);
-  if (userContext === null) {
-    throw new Error("null user context");
-  }
-  const { user, setUser } = userContext;
+  const { user, setUser } = useContext(UserContext)!;
 
   return (
     <>
@@ -161,7 +153,7 @@ export default function Frame() {
         </DrawerHeader>
         <Divider />
         <List>
-          <Repository />
+          <Repository onClose={() => setDrawerOpen(false)} />
         </List>
       </Drawer>
     </>

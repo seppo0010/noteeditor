@@ -12,7 +12,7 @@
     "@types/node": "^16.18.12",
     "@types/react": "^18.0.28",
     "@types/react-dom": "^18.0.10",
-    "dedent": "^0.7.0",
+    "buffer": "^6.0.3",
     "mermaid": "^9.3.0",
     "prismjs": "^1.29.0",
     "react": "^18.2.0",
@@ -34,8 +34,8 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
+    "start": "react-app-rewired start",
+    "build": "react-app-rewired build",
     "eject": "react-scripts eject"
   },
   "eslintConfig": {
@@ -58,6 +58,7 @@
   "devDependencies": {
     "@types/dedent": "^0.7.0",
     "@types/prismjs": "^1.26.0",
-    "@types/react-is": "^17.0.3"
+    "@types/react-is": "^17.0.3",
+    "react-app-rewired": "^2.2.1"
   }
 }
