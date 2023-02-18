@@ -24,7 +24,7 @@ export interface FileOpt {
 }
 
 const decode = (str: string): string =>
-  Buffer.from(str, "base64").toString("binary");
+  Buffer.from(str, "base64").toString("utf-8");
 
 export interface Content {
   path: string;
