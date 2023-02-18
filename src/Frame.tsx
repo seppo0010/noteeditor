@@ -24,6 +24,7 @@ import { Repository } from "./repository";
 import SearchResults from "./SearchResults";
 import { useAsync } from "react-use";
 import { search } from "./search";
+import { useHotkeys } from "react-hotkeys-hook";
 
 const drawerWidth = 240;
 const SearchDiv = styled("div")(({ theme }) => ({
@@ -106,6 +107,15 @@ function Search() {
   const searchResults = useAsync(async () => {
     return search(searchCriteria);
   }, [searchCriteria]);
+  useHotkeys(
+    "meta+/",
+    () => {
+      searchInputRef?.current?.focus();
+    },
+    { enableOnFormTags: true },
+    [searchInputRef]
+  );
+
   return (
     <SearchDiv>
       <SearchIconWrapper>

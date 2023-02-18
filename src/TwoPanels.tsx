@@ -7,6 +7,7 @@ import "prismjs/themes/prism.css";
 import Markdown from "./Markdown";
 import { cloneContent, Content, contentsAreEqual, FileContext } from "./file";
 import { SearchActionContext } from "./SearchAction";
+import { useHotkeys } from "react-hotkeys-hook";
 
 const defaultCode = `
 # Hello world
@@ -66,6 +67,18 @@ export default function TwoPanels() {
   const positioningRef = useRef<HTMLPreElement | null>(null);
   const [selectionStart, setSelectionStart] = useState(0);
   const [selectionEnd, setSelectionEnd] = useState(0);
+
+  useHotkeys(
+    "esc",
+    () => {
+      const textarea:
+        | HTMLTextAreaElement
+        | undefined = editorRef?.current?.getElementsByTagName("textarea")[0];
+      textarea?.focus();
+    },
+    { enableOnFormTags: true },
+    [editorRef]
+  );
 
   useEffect(() => {
     if (pending.actions.length > 0 && pending.actions[0].type === "addCode") {
