@@ -17,7 +17,7 @@ interface Node {
 
 const addBoundingBox = function (positionEl: HTMLPreElement | null): Pluggable {
   const addPosition = (node: Node) => {
-    if (!positionEl) {
+    if (!positionEl || !positionEl!.childNodes[0]) {
       return;
     }
     const range = document.createRange();
