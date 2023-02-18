@@ -29,7 +29,7 @@ export interface Content {
   path: string;
   innerContent:
     | { loading: true; text?: undefined; sha?: undefined }
-    | { loading: false; text: string; sha: string; };
+    | { loading: false; text: string; sha: string };
 }
 
 export function contentsAreEqual(c1: Content, c2: Content): boolean {
@@ -59,6 +59,7 @@ export interface FileContextInterface {
   file: FileOpt;
   setFile: Dispatch<SetStateAction<FileOpt>>;
   content: Content | null;
+  setContent: Dispatch<SetStateAction<Content | null>>;
 }
 
 export const FileContext = createContext<FileContextInterface | null>(null);
@@ -104,7 +105,11 @@ export const FileProvider = ({ children }: FileProviderInterface) => {
           const text = decode((data as { content: string }).content);
           setContent({
             path: file.path!,
-            innerContent: { loading: false, text, sha: (data as { sha: string }).sha },
+            innerContent: {
+              loading: false,
+              text,
+              sha: (data as { sha: string }).sha,
+            },
           });
         })();
       } else {
@@ -120,7 +125,7 @@ export const FileProvider = ({ children }: FileProviderInterface) => {
   }, [file]);
 
   return (
-    <FileContext.Provider value={{ file, setFile, content }}>
+    <FileContext.Provider value={{ file, setFile, content, setContent }}>
       {children}
     </FileContext.Provider>
   );

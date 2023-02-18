@@ -50,7 +50,7 @@ root((mindmap))
 \`\`\`
 `;
 export default function TwoPanels() {
-  const { content } = useContext(FileContext)!;
+  const { content, setContent } = useContext(FileContext)!;
   const { setCallback } = useContext(SearchActionContext)!;
   const [code, setCode] = useState(defaultCode);
   const [loadedContent, setLoadedContent] = useState<Content | null>(null);
@@ -235,22 +235,54 @@ export default function TwoPanels() {
 
   const { user } = useContext(UserContext)!;
   const { file } = useContext(FileContext)!;
+  const save = useCallback(async () => {
+    if (
+      loadedContent &&
+      file.repository &&
+      code !== loadedContent.innerContent.text
+    ) {
+      const octokit = new Octokit({ auth: user.loggedIn?.auth });
+      const {
+        data: { content },
+      } = await octokit.request("PUT /repos/{owner}/{repo}/contents/{path}", {
+        owner: file.repository.owner,
+        repo: file.repository.name,
+        path: loadedContent.path,
+        message: "changes",
+        content: Buffer.from(code, "binary").toString("base64"),
+        sha: loadedContent.innerContent.sha,
+      });
+      setLoadedContent({
+        path: loadedContent.path,
+        innerContent: {
+          loading: false,
+          text: code,
+          sha: content!.sha!,
+        },
+      });
+      setContent({
+        path: loadedContent.path,
+        innerContent: {
+          loading: false,
+          text: code,
+          sha: content!.sha!,
+        },
+      });
+    }
+  }, [user, loadedContent, code, file, setLoadedContent, setContent]);
   useEffect(() => {
-    const timeout = setTimeout(async () => {
-      if (loadedContent && file.repository && code !== loadedContent.innerContent.text) {
-        const octokit = new Octokit({ auth: user.loggedIn?.auth });
-        await octokit.request('PUT /repos/{owner}/{repo}/contents/{path}', {
-          owner: file.repository.owner,
-          repo: file.repository.name,
-          path: loadedContent.path,
-          message: 'changes',
-          content: Buffer.from(code, "binary").toString("base64"),
-          sha: loadedContent.innerContent.sha,
-        })
-      }
-    }, 30000);
+    const timeout = setTimeout(save, 30000);
     return () => clearTimeout(timeout);
-  }, [user, loadedContent, code, file]);
+  }, [save]);
+  useHotkeys(
+    "meta+s, ctrl+s",
+    (keyboardEvent: KeyboardEvent) => {
+      keyboardEvent.preventDefault();
+      save();
+    },
+    { enableOnFormTags: true },
+    [save]
+  );
 
   return (
     <div id="app" style={{ position: "relative" }}>
