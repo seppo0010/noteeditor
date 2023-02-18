@@ -6,6 +6,7 @@ import Frame from "./Frame";
 import { UserProvider } from "./user";
 import { FileProvider } from "./file";
 import TwoPanels from "./TwoPanels";
+import { SearchActionProvider } from "./SearchAction";
 
 const darkTheme = createTheme({
   palette: {
@@ -20,10 +21,12 @@ function App() {
   return (
     <UserProvider>
       <FileProvider>
-        <ThemeProvider theme={darkTheme}>
-          <Frame />
-          <TwoPanels />
-        </ThemeProvider>
+        <SearchActionProvider>
+          <ThemeProvider theme={darkTheme}>
+            <Frame />
+            <TwoPanels />
+          </ThemeProvider>
+        </SearchActionProvider>
       </FileProvider>
     </UserProvider>
   );

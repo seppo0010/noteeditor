@@ -6,6 +6,7 @@ import "prismjs/components/prism-markdown";
 import "prismjs/themes/prism.css";
 import Markdown from "./Markdown";
 import { cloneContent, Content, contentsAreEqual, FileContext } from "./file";
+import { SearchActionContext } from "./SearchAction";
 
 const defaultCode = `
 # Hello world
@@ -47,6 +48,7 @@ root((mindmap))
 `;
 export default function TwoPanels() {
   const { content } = useContext(FileContext)!;
+  const { pending, setPending } = useContext(SearchActionContext);
   const [code, setCode] = useState(defaultCode);
   const [loadedContent, setLoadedContent] = useState<Content | null>(null);
   useEffect(() => {
@@ -62,7 +64,33 @@ export default function TwoPanels() {
   const editorRef = useRef<HTMLDivElement | null>(null);
   const previewRef = useRef<HTMLDivElement | null>(null);
   const positioningRef = useRef<HTMLPreElement | null>(null);
+  const [selectionStart, setSelectionStart] = useState(0);
+  const [selectionEnd, setSelectionEnd] = useState(0);
 
+  useEffect(() => {
+    if (pending.actions.length > 0 && pending.actions[0].type === "addCode") {
+      const action = pending.actions[0];
+      const newCode =
+        code.substring(0, selectionStart) +
+        action.code +
+        code.substring(selectionEnd);
+      const textarea: HTMLTextAreaElement = editorRef!.current!.getElementsByTagName(
+        "textarea"
+      )[0];
+      // this is needed only to keep the cursor in the desired position
+      textarea.value = newCode;
+      textarea.setSelectionRange(
+        selectionStart + action.code.length,
+        selectionStart + action.code.length
+      );
+      textarea.focus();
+      setCode(newCode);
+      setPending({
+        ...pending,
+        actions: pending.actions.slice(1),
+      });
+    }
+  }, [pending, code, selectionEnd, selectionStart, setPending, editorRef]);
   useEffect(() => {
     if (!editorRef?.current || !previewRef?.current) {
       return;
@@ -110,7 +138,7 @@ export default function TwoPanels() {
       });
       clearTimeout(resetScrolling);
       resetScrolling = setTimeout(() => {
-        scrolling = null
+        scrolling = null;
       }, 1000);
     };
     const onscrollEditor = (event: Event) => {
@@ -153,7 +181,7 @@ export default function TwoPanels() {
       });
       clearTimeout(resetScrolling);
       resetScrolling = setTimeout(() => {
-        scrolling = null
+        scrolling = null;
       }, 1000);
     };
     editorEl.addEventListener("scroll", onscrollEditor);
@@ -195,6 +223,12 @@ export default function TwoPanels() {
           value={code}
           onValueChange={(code) => setCode(code)}
           highlight={(code) => highlight(code, languages.markdown, "md")}
+          onBlur={(event) => {
+            setSelectionStart(
+              (event.target as HTMLTextAreaElement).selectionStart
+            );
+            setSelectionEnd((event.target as HTMLTextAreaElement).selectionEnd);
+          }}
           padding={10}
         />
       </div>

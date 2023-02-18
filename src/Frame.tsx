@@ -1,4 +1,4 @@
-import { useContext, useState } from "react";
+import { useContext, useRef, useState } from "react";
 import "./App.css";
 import "prismjs/components/prism-markdown";
 import "prismjs/themes/prism.css";
@@ -15,14 +15,18 @@ import {
   Divider,
   List,
   AppBarProps as MuiAppBarProps,
+  Popover,
 } from "@mui/material";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import { UserContext } from "./user";
 import { LoginLogoutAvatar } from "./loginlogout";
 import { Repository } from "./repository";
+import SearchResults from "./SearchResults";
+import { useAsync } from "react-use";
+import { search } from "./search";
 
 const drawerWidth = 240;
-const Search = styled("div")(({ theme }) => ({
+const SearchDiv = styled("div")(({ theme }) => ({
   position: "relative",
   borderRadius: theme.shape.borderRadius,
   backgroundColor: alpha(theme.palette.common.white, 0.15),
@@ -95,6 +99,57 @@ const AppBar = styled(MuiAppBar, {
   }),
 }));
 
+function Search() {
+  const [searchCriteria, setSearchCriteria] = useState("");
+  const searchInputRef = useRef<HTMLElement | null>(null);
+  const [searchResultsOpen, setSearchResultsOpen] = useState(false);
+  const searchResults = useAsync(async () => {
+    return search(searchCriteria);
+  }, [searchCriteria]);
+  return (
+    <SearchDiv>
+      <SearchIconWrapper>
+        <SearchIcon />
+      </SearchIconWrapper>
+      <StyledInputBase
+        placeholder="Search…"
+        inputProps={{ "aria-label": "search" }}
+        inputRef={searchInputRef}
+        onFocus={() => setSearchResultsOpen(true)}
+        onBlur={() => setSearchResultsOpen(false)}
+        value={searchCriteria}
+        onChange={(event) => setSearchCriteria(event.target.value)}
+      />
+      {searchCriteria !== "" && (
+        <Popover
+          open={searchResultsOpen}
+          onClose={() => setSearchResultsOpen(false)}
+          disableAutoFocus={true}
+          disableEnforceFocus={true}
+          anchorEl={searchInputRef?.current}
+          anchorOrigin={{
+            vertical: "bottom",
+            horizontal: "right",
+          }}
+          transformOrigin={{
+            vertical: "top",
+            horizontal: "right",
+          }}
+        >
+          <SearchResults
+            {...searchResults}
+            onDone={() => {
+              setSearchCriteria("");
+              setSearchResultsOpen(false);
+              searchInputRef?.current?.blur();
+            }}
+          />
+        </Popover>
+      )}
+    </SearchDiv>
+  );
+}
+
 export default function Frame() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const { user, setUser } = useContext(UserContext)!;
@@ -121,15 +176,7 @@ export default function Frame() {
           >
             noteeditor
           </Typography>
-          <Search>
-            <SearchIconWrapper>
-              <SearchIcon />
-            </SearchIconWrapper>
-            <StyledInputBase
-              placeholder="Search…"
-              inputProps={{ "aria-label": "search" }}
-            />
-          </Search>
+          <Search />
           <LoginLogoutAvatar user={user} setUser={setUser} />
         </Toolbar>
       </AppBar>
