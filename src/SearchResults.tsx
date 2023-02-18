@@ -1,15 +1,18 @@
 import {
   CircularProgress,
+  IconButton,
   List,
   ListItem,
   ListItemButton,
   ListItemText,
 } from "@mui/material";
-import { useCallback, useContext, useState } from "react";
+import React, { useCallback, useContext, useState } from "react";
 import { MermaidResult, Result } from "./search";
 import { SearchActionContext } from "./SearchAction";
 import { useHotkeys } from "react-hotkeys-hook";
 import { SearchResult } from "./search";
+import OpenInNewIcon from "@mui/icons-material/OpenInNew";
+import { FileContext } from "./file";
 
 function MermaidSearchResult({
   item,
@@ -34,11 +37,13 @@ function MermaidSearchResult({
     add,
   ]);
   return (
-    <ListItemButton selected={selected} onClick={add}>
-      <ListItemText
-        primary={<span style={{ whiteSpace: "pre" }}>{item.text}</span>}
-      />
-    </ListItemButton>
+    <ListItem>
+      <ListItemButton selected={selected} onClick={add}>
+        <ListItemText
+          primary={<span style={{ whiteSpace: "pre" }}>{item.text}</span>}
+        />
+      </ListItemButton>
+    </ListItem>
   );
 }
 
@@ -46,10 +51,12 @@ function ReactSearchResult({
   item,
   onDone,
   selected,
+  repository,
 }: {
   item: SearchResult;
   onDone?: () => void;
   selected: boolean;
+  repository: { owner: string; name: string } | undefined;
 }) {
   const { callback } = useContext(SearchActionContext)!;
   const add = useCallback(() => {
@@ -65,11 +72,26 @@ function ReactSearchResult({
     add,
   ]);
   return (
-    <ListItemButton selected={selected} onClick={add}>
-      <ListItemText
-        primary={<span style={{ whiteSpace: "pre" }}>{item.text}</span>}
-      />
-    </ListItemButton>
+    <ListItem
+      secondaryAction={
+        repository && (
+          <IconButton
+            edge="end"
+            aria-label="open"
+            href={`https://github.com/${repository.owner}/${repository.name}/blob/main/documents/${item.path}`}
+            target="_blank"
+          >
+            <OpenInNewIcon />
+          </IconButton>
+        )
+      }
+    >
+      <ListItemButton selected={selected} onClick={add}>
+        <ListItemText
+          primary={<span style={{ whiteSpace: "pre" }}>{item.text}</span>}
+        />
+      </ListItemButton>
+    </ListItem>
   );
 }
 
@@ -107,6 +129,7 @@ export default function SearchResults({
     { enableOnFormTags: true },
     [selected, value]
   );
+  const { file } = useContext(FileContext)!;
 
   if (loading) {
     return <CircularProgress />;
@@ -120,7 +143,7 @@ export default function SearchResults({
   return (
     <List>
       {value?.map((item: Result, index: number) => (
-        <ListItem key={`${index}`}>
+        <React.Fragment key={`${index}`}>
           {item.type === "mermaid" && (
             <MermaidSearchResult
               item={item}
@@ -130,12 +153,13 @@ export default function SearchResults({
           )}
           {item.type === "search" && (
             <ReactSearchResult
+              repository={file.repository}
               item={item}
               onDone={onDone}
               selected={index === selected}
             />
           )}
-        </ListItem>
+        </React.Fragment>
       )) ?? ""}
     </List>
   );
