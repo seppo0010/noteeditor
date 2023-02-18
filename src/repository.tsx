@@ -204,23 +204,44 @@ function UploadDocument({
   };
 
   const { user } = useContext(UserContext)!;
-  const { file } = useContext(FileContext)!;
+  const { file, miniSearch } = useContext(FileContext)!;
   const uploadFiles = async () => {
+    if (!files) {
+      handleClose(false);
+      return;
+    }
     const octokit = new Octokit({ auth: user.loggedIn?.auth });
+    if (!file.repository || !miniSearch) {
+      return;
+    }
+    const repository = Object.assign({}, file.repository);
     await Promise.all(
       (files ?? []).map(async (f: { file: File }) => {
-        if (!file.repository) {
-          return;
-        }
         await octokit.request("PUT /repos/{owner}/{repo}/contents/{path}", {
-          owner: file.repository.owner,
-          repo: file.repository.name,
+          owner: repository.owner,
+          repo: repository.name,
           path: `documents/${f.file.name}`,
           message: "new document",
           content: await blobToBase64(f.file),
         });
       })
     );
+    miniSearch.addAll(
+      files.map(({ file, content }) => ({
+        path: file.name,
+        text: content,
+      }))
+    );
+    await octokit.request("PUT /repos/{owner}/{repo}/contents/{path}", {
+      owner: repository.owner,
+      repo: repository.name,
+      path: `minisearch.json`,
+      message: "new document",
+      content: await blobToBase64(
+        new Blob([JSON.stringify(miniSearch.toJSON())])
+      ),
+    });
+
     setFiles([]);
     handleClose(true);
   };

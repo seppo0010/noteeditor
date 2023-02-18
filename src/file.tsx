@@ -1,4 +1,5 @@
 import { Octokit } from "@octokit/rest";
+import MiniSearch, { Options } from "minisearch";
 import {
   ReactNode,
   useState,
@@ -60,9 +61,16 @@ export interface FileContextInterface {
   setFile: Dispatch<SetStateAction<FileOpt>>;
   content: Content | null;
   setContent: Dispatch<SetStateAction<Content | null>>;
+  miniSearch: MiniSearch | null;
 }
 
 export const FileContext = createContext<FileContextInterface | null>(null);
+
+const miniSearchOptions: Options = {
+  idField: "path",
+  fields: ["text"],
+  storeFields: ["path", "text"],
+};
 
 export const FileProvider = ({ children }: FileProviderInterface) => {
   const [file, setFile] = useState<FileOpt>(
@@ -71,6 +79,7 @@ export const FileProvider = ({ children }: FileProviderInterface) => {
 
   const { user } = useContext(UserContext)!;
   const [content, setContent] = useState<Content | null>(null);
+  const [miniSearch, setMiniSearch] = useState<MiniSearch | null>(null);
 
   useEffect(() => {
     const auth = user.loggedIn?.auth;
@@ -119,13 +128,55 @@ export const FileProvider = ({ children }: FileProviderInterface) => {
   }, [content?.path, file, user]);
 
   useEffect(() => {
+    const auth = user.loggedIn?.auth;
+    if (!auth) {
+      throw new Error("No user context");
+    }
+    (async () => {
+      const { repository } = file;
+      if (!repository) {
+        setMiniSearch(null);
+        return;
+      }
+
+      const octokit = new Octokit({ auth });
+      try {
+        const { data } = await octokit.request(
+          "GET /repos/{owner}/{repo}/contents/{path}",
+          {
+            owner: repository.owner,
+            repo: repository.name,
+            path: "minisearch.json",
+          }
+        );
+        if ((data as { type?: unknown })?.type !== "file") {
+          throw new Error(`Unexpected type ${JSON.stringify(data)}`);
+        }
+        if ((data as { encoding?: unknown })?.encoding !== "base64") {
+          throw new Error(`Unexpected encoding ${JSON.stringify(data)}`);
+        }
+        const text = decode((data as { content: string }).content);
+        setMiniSearch(MiniSearch.loadJSON(text, miniSearchOptions));
+      } catch (e) {
+        if ((e as undefined | { message?: string })?.message === "Not Found") {
+          setMiniSearch(new MiniSearch(miniSearchOptions));
+        } else {
+          console.error({ e });
+        }
+      }
+    })();
+  }, [file, user]);
+
+  useEffect(() => {
     if (file) {
       localStorage.setItem("file", JSON.stringify(file));
     }
   }, [file]);
 
   return (
-    <FileContext.Provider value={{ file, setFile, content, setContent }}>
+    <FileContext.Provider
+      value={{ file, setFile, content, setContent, miniSearch }}
+    >
       {children}
     </FileContext.Provider>
   );
