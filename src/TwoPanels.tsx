@@ -104,6 +104,7 @@ export default function TwoPanels() {
       });
     }
   }, [pending, code, selectionEnd, selectionStart, setPending, editorRef]);
+
   useEffect(() => {
     if (!editorRef?.current || !previewRef?.current) {
       return;
