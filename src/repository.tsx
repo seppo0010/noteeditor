@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from "react";
+import { useCallback, useContext, useEffect, useState } from "react";
 import "./App.css";
 import "prismjs/components/prism-markdown";
 import "prismjs/themes/prism.css";
@@ -10,12 +10,26 @@ import {
   ListItemIcon,
   ListItem,
   CircularProgress,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  Input,
+  Alert,
+  List,
 } from "@mui/material";
 import { Octokit } from "@octokit/rest";
 import { FileContext } from "./file";
 import { UserContext, UserOpt } from "./user";
 import EditIcon from "@mui/icons-material/Edit";
+import AddIcon from "@mui/icons-material/Add";
 import { useAsync } from "react-use";
+import * as pdfjsLib from "pdfjs-dist";
+import { TextItem, TextMarkedContent } from "pdfjs-dist/types/src/display/api";
+pdfjsLib.GlobalWorkerOptions.workerSrc =
+  "//cdnjs.cloudflare.com/ajax/libs/pdf.js/3.3.122/pdf.worker.js";
 
 interface Repo {
   owner: string;
@@ -114,6 +128,117 @@ function Tree({
   );
 }
 
+async function readPDFFile(f: File): Promise<string> {
+  const loadingTask = pdfjsLib.getDocument(
+    new Uint8Array(await f.arrayBuffer())
+  );
+  const pdf = await loadingTask.promise;
+  const texts = await Promise.all(
+    Array.from({ length: pdf.numPages }, (x, i) =>
+      pdf.getPage(i + 1).then(async (page) => {
+        const texts = await page.getTextContent();
+        return texts.items
+          .map((item: TextItem | TextMarkedContent) => {
+            if (!item.hasOwnProperty("str")) {
+              return "";
+            }
+            const textItem = item as TextItem;
+            return textItem.str + (textItem.hasEOL ? "\n" : "");
+          })
+          .join("");
+      })
+    )
+  );
+  return texts.join("\n");
+}
+
+async function readFile(f: File): Promise<string | null> {
+  if (f.type === "application/pdf") return readPDFFile(f);
+  if (f.type === "text/plain") return f.text();
+  return null;
+}
+
+function UploadDocument({
+  open,
+  handleClose,
+}: {
+  open: boolean;
+  handleClose: () => void;
+}) {
+  const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [files, setFiles] = useState<
+    { file: File; content: string | null }[] | null
+  >(null);
+  const addFiles = async (files: FileList) => {
+    setLoading(true);
+    setErrorMessage(null);
+    try {
+      setFiles(
+        await Promise.all(
+          Array.from(files).map(async (file: File) => ({
+            file,
+            content: await readFile(file),
+          }))
+        )
+      );
+    } catch (err: unknown) {
+      const error = err as { message?: string } | undefined;
+      setErrorMessage(error?.message ?? "Unexpected error");
+    } finally {
+      setLoading(false);
+    }
+  };
+  return (
+    <Dialog open={open} onClose={handleClose}>
+      <DialogTitle>Upload Document</DialogTitle>
+      <DialogContent>
+        <DialogContentText>
+          Uploading a document will keep it for reference and add its contents
+          to the search bar.
+        </DialogContentText>
+        <Input
+          style={{ display: "none" }}
+          id="upload-document-file"
+          componentsProps={{ input: { multiple: true } }}
+          type="file"
+          onChange={(ev: React.ChangeEvent<HTMLInputElement>) => {
+            if (ev.target.files) {
+              addFiles(ev.target.files);
+            }
+          }}
+        />
+        {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
+        <label htmlFor="upload-document-file">
+          <Button variant="contained" component="span">
+            Upload
+          </Button>
+        </label>
+        {loading && <CircularProgress />}
+        {files && (
+          <List>
+            {files.map(({ file, content }, i) => (
+              <ListItem key={`${i}`}>
+                <ListItemButton
+                  title={
+                    (content?.substring(0, 200) ?? "") +
+                    ((content?.length ?? 0) > 200 ? "..." : "")
+                  }
+                >
+                  {file.name}
+                </ListItemButton>
+              </ListItem>
+            ))}
+          </List>
+        )}
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={handleClose}>Cancel</Button>
+        <Button onClick={handleClose}>Done</Button>
+      </DialogActions>
+    </Dialog>
+  );
+}
 export function Repository({ onClose }: { onClose: () => void }) {
   const { file, setFile } = useContext(FileContext)!;
   const { user } = useContext(UserContext)!;
@@ -145,6 +270,11 @@ export function Repository({ onClose }: { onClose: () => void }) {
     return tree.filter(({ type }: { type: unknown }) => type === "blob");
   }, [file, user]);
 
+  const [uploadDocumentOpen, setUploadDocumentOpen] = useState(false);
+  const handleUploadDocumentClose = useCallback(() => {
+    setUploadDocumentOpen(false);
+  }, [setUploadDocumentOpen]);
+
   const [change, setChange] = useState(false);
   if (change) {
     return <PickRepository onDone={() => setChange(false)} user={user} />;
@@ -165,6 +295,18 @@ export function Repository({ onClose }: { onClose: () => void }) {
             }
           />
         </ListItemButton>
+      </ListItem>
+      <ListItem>
+        <ListItemButton onClick={() => setUploadDocumentOpen(true)}>
+          <ListItemIcon>
+            <AddIcon />
+          </ListItemIcon>
+          <ListItemText primary="Upload document" />
+        </ListItemButton>
+        <UploadDocument
+          open={uploadDocumentOpen}
+          handleClose={handleUploadDocumentClose}
+        />
       </ListItem>
       <Tree
         {...treeState}
