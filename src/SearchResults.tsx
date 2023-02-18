@@ -34,6 +34,7 @@ function MermaidSearchResult({
     onDone && onDone();
   }, [pending, item, onDone, setPending]);
   useHotkeys("enter", () => selected && add(), { enableOnFormTags: true }, [
+    selected,
     add,
   ]);
   return (
