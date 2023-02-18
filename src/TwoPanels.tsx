@@ -281,10 +281,11 @@ export default function TwoPanels() {
       }
     }
   }, [user, loadedContent, code, file, setLoadedContent, setContent]);
+
   useEffect(() => {
     const timeout = setTimeout(save, 30000);
     return () => clearTimeout(timeout);
-  }, [save]);
+  }, [save, user, loadedContent, code, file, setLoadedContent, setContent]);
   useHotkeys(
     "meta+s, ctrl+s",
     (keyboardEvent: KeyboardEvent) => {
@@ -292,7 +293,7 @@ export default function TwoPanels() {
       save();
     },
     { enableOnFormTags: true },
-    [save]
+    [save, user, loadedContent, code, file, setLoadedContent, setContent]
   );
 
   return (
