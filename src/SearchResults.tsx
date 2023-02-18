@@ -60,7 +60,6 @@ export default function SearchResults({
   useHotkeys(
     "up",
     () => {
-      console.log({ selected, value });
       if (value === undefined || value.length === 0) {
         return;
       }
