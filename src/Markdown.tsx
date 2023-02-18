@@ -29,13 +29,6 @@ const addBoundingBox = function (positionEl: HTMLPreElement | null): Pluggable {
     node.data.hProperties["data-top"] =
       rect.top - positionEl.getBoundingClientRect().top;
     node.data.hProperties["data-height"] = rect.height;
-    console.log(
-      rect,
-      positionEl!.childNodes[0].textContent?.substring(
-        node.position.start.offset,
-        node.position.end.offset
-      )
-    );
     node.children?.forEach((child: Node) => addPosition(child));
   };
   return () => {

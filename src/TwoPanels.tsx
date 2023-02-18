@@ -79,13 +79,7 @@ export default function TwoPanels() {
           parseFloat(el.getAttribute("data-top") ?? "Infinity"),
           parseFloat(el.getAttribute("data-height") ?? "Infinity"),
         ];
-        if (editorTop === Infinity || editorHeight === Infinity) {
-          return false;
-        }
-        if (middle < top + height) {
-          return true;
-        }
-        return false;
+        return editorTop !== Infinity && editorHeight !== Infinity && middle < top + height;
       });
       if (!closestEl) {
         return;
