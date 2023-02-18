@@ -28,27 +28,29 @@ const decode = (str: string): string =>
 export interface Content {
   path: string;
   innerContent:
-    | { loading: true; text: undefined }
-    | { loading: false; text: string };
+    | { loading: true; text?: undefined; sha?: undefined }
+    | { loading: false; text: string; sha: string; };
 }
 
 export function contentsAreEqual(c1: Content, c2: Content): boolean {
   return (
     c1.path === c2.path &&
     c1.innerContent.loading === c2.innerContent.loading &&
-    c1.innerContent?.text === c2.innerContent?.text
+    c1.innerContent?.text === c2.innerContent?.text &&
+    c1.innerContent?.sha === c2.innerContent?.sha
   );
 }
 
 export function cloneContent({
   path,
-  innerContent: { loading, text },
+  innerContent: { loading, text, sha },
 }: Content): Content {
   return {
     path,
     innerContent: {
       loading,
       text,
+      sha,
     },
   } as Content;
 }
@@ -81,7 +83,7 @@ export const FileProvider = ({ children }: FileProviderInterface) => {
       if (file.path) {
         setContent({
           path: file.path,
-          innerContent: { loading: true, text: undefined },
+          innerContent: { loading: true },
         });
         (async () => {
           const octokit = new Octokit({ auth });
@@ -102,7 +104,7 @@ export const FileProvider = ({ children }: FileProviderInterface) => {
           const text = decode((data as { content: string }).content);
           setContent({
             path: file.path!,
-            innerContent: { loading: false, text },
+            innerContent: { loading: false, text, sha: (data as { sha: string }).sha },
           });
         })();
       } else {

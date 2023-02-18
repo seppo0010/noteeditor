@@ -8,6 +8,8 @@ import Markdown from "./Markdown";
 import { cloneContent, Content, contentsAreEqual, FileContext } from "./file";
 import { SearchAction, SearchActionContext } from "./SearchAction";
 import { useHotkeys } from "react-hotkeys-hook";
+import { Octokit } from "@octokit/rest";
+import { UserContext } from "./user";
 
 const defaultCode = `
 # Hello world
@@ -230,6 +232,25 @@ export default function TwoPanels() {
     targetNode.style.top = "0";
     targetNode.style.left = "0";
   }, [editorRef, positioningRef]);
+
+  const { user } = useContext(UserContext)!;
+  const { file } = useContext(FileContext)!;
+  useEffect(() => {
+    const timeout = setTimeout(async () => {
+      if (loadedContent && file.repository && code !== loadedContent.innerContent.text) {
+        const octokit = new Octokit({ auth: user.loggedIn?.auth });
+        await octokit.request('PUT /repos/{owner}/{repo}/contents/{path}', {
+          owner: file.repository.owner,
+          repo: file.repository.name,
+          path: loadedContent.path,
+          message: 'changes',
+          content: Buffer.from(code, "binary").toString("base64"),
+          sha: loadedContent.innerContent.sha,
+        })
+      }
+    }, 30000);
+    return () => clearTimeout(timeout);
+  }, [user, loadedContent, code, file]);
 
   return (
     <div id="app" style={{ position: "relative" }}>
