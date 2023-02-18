@@ -69,37 +69,67 @@ export default function TwoPanels() {
     }
     const editorEl = editorRef.current;
     const previewEl = previewRef.current;
-    const onscroll = (event: Event) => { console.log(editorEl.scrollTop, previewEl.scrollTop) }
-    editorEl.addEventListener('scroll', onscroll);
-    previewEl.addEventListener('scroll', onscroll);
-    return () => {
-      editorEl.removeEventListener('scroll', onscroll);
-      previewEl.removeEventListener('scroll', onscroll);
+    const onscroll = (event: Event) => {
+      const middle = previewEl.scrollTop + previewEl.offsetHeight / 2;
+      const closestEl = (Array.from(
+        previewEl.children
+      ) as Array<HTMLElement>).find((el: HTMLElement) => {
+        const [top, height] = [el.offsetTop, el.offsetHeight];
+        const [editorTop, editorHeight] = [
+          parseFloat(el.getAttribute("data-top") ?? "Infinity"),
+          parseFloat(el.getAttribute("data-height") ?? "Infinity"),
+        ];
+        if (editorTop === Infinity || editorHeight === Infinity) {
+          return false;
+        }
+        if (middle < top + height) {
+          return true;
+        }
+        return false;
+      });
+      if (!closestEl) {
+        return;
+      }
+      const [top, height] = [closestEl.offsetTop, closestEl.offsetHeight];
+      const [editorTop, editorHeight] = [
+        parseFloat(closestEl.getAttribute("data-top") ?? "Infinity"),
+        parseFloat(closestEl.getAttribute("data-height") ?? "Infinity"),
+      ];
+      const relPos = (middle - top) / height;
+      editorEl.scrollTop =
+        editorTop + relPos * editorHeight - previewEl.offsetHeight / 2;
     };
-  }, [editorRef, previewRef])
+    previewEl.addEventListener("scroll", onscroll);
+    return () => {
+      previewEl.removeEventListener("scroll", onscroll);
+    };
+  }, [editorRef, previewRef]);
 
   useEffect(() => {
     if (!editorRef?.current || !positioningRef?.current) {
       return;
     }
     var targetNode = positioningRef.current;
-    const styles = window.getComputedStyle(editorRef.current.getElementsByTagName('textarea')[0]);
-    if (styles.cssText !== '') {
-        targetNode.style.cssText = styles.cssText;
+    const styles = window.getComputedStyle(
+      editorRef.current.getElementsByTagName("textarea")[0]
+    );
+    if (styles.cssText !== "") {
+      targetNode.style.cssText = styles.cssText;
     } else {
-        const cssText = Object.values(styles).reduce(
-            (css, propertyName) =>
-                `${css}${propertyName}:${styles.getPropertyValue(
-                    propertyName
-                )};`
-        );
-        targetNode.style.cssText = cssText
+      const cssText = Object.values(styles).reduce(
+        (css, propertyName) =>
+          `${css}${propertyName}:${styles.getPropertyValue(propertyName)};`
+      );
+      targetNode.style.cssText = cssText;
     }
-    targetNode.style.visibility = 'hidden';
-  }, [editorRef, positioningRef])
+    targetNode.style.visibility = "hidden";
+    targetNode.style.position = "absolute";
+    targetNode.style.top = "0";
+    targetNode.style.left = "0";
+  }, [editorRef, positioningRef]);
 
   return (
-    <div id="app">
+    <div id="app" style={{ position: "relative" }}>
       <div id="editor" ref={editorRef}>
         <pre ref={positioningRef}>{code}</pre>
         <Editor

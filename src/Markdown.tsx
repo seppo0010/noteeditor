@@ -11,33 +11,50 @@ import { childrenToReact } from "./ast-to-react";
 
 interface Node {
   children?: Node[];
-  position: { start: { offset: number }, end: { offset: number }};
+  position: { start: { offset: number }; end: { offset: number } };
   data?: { hProperties?: Record<string, unknown> };
 }
 
 const addBoundingBox = function (positionEl: HTMLPreElement | null): Pluggable {
-  const addPositionRecursively = (node: Node) => {
+  const addPosition = (node: Node) => {
+    if (!positionEl) {
+      return;
+    }
     const range = document.createRange();
     range.setStart(positionEl!.childNodes[0], node.position.start.offset);
     range.setEnd(positionEl!.childNodes[0], node.position.end.offset);
-    node.data = node.data ?? {}
-    node.data.hProperties = node.data.hProperties ?? {}
+    node.data = node.data ?? {};
+    node.data.hProperties = node.data.hProperties ?? {};
     const rect = range.getBoundingClientRect();
-    node.data.hProperties['data-top'] = rect.top;
-    node.data.hProperties['data-height'] = rect.height;
-    node.children?.forEach((child: Node) => addPositionRecursively(child));
-  }
+    node.data.hProperties["data-top"] =
+      rect.top - positionEl.getBoundingClientRect().top;
+    node.data.hProperties["data-height"] = rect.height;
+    console.log(
+      rect,
+      positionEl!.childNodes[0].textContent?.substring(
+        node.position.start.offset,
+        node.position.end.offset
+      )
+    );
+    node.children?.forEach((child: Node) => addPosition(child));
+  };
   return () => {
     return (ast: Node, file, next) => {
       if (positionEl) {
-        addPositionRecursively(ast);
+        addPosition(ast);
       }
       next();
     };
-  }
-}
+  };
+};
 
-export default function Markdown({ code, positioningEl }: { code: string, positioningEl: HTMLPreElement | null }): JSX.Element {
+export default function Markdown({
+  code,
+  positioningEl,
+}: {
+  code: string;
+  positioningEl: HTMLPreElement | null;
+}): JSX.Element {
   const processor = unified()
     .use(remarkParse)
     .use([addBoundingBox(positioningEl)])
