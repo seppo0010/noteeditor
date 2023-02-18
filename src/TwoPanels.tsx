@@ -70,6 +70,7 @@ export default function TwoPanels() {
     const editorEl = editorRef.current;
     const previewEl = previewRef.current;
     let scrolling: "editor" | "preview" | null = null;
+    let resetScrolling: any;
     const onscrollPreview = (event: Event) => {
       if (scrolling === "editor") {
         return;
@@ -107,7 +108,10 @@ export default function TwoPanels() {
         behavior: "smooth",
         top,
       });
-      setTimeout(() => (scrolling = null), 1000);
+      clearTimeout(resetScrolling);
+      resetScrolling = setTimeout(() => {
+        scrolling = null
+      }, 1000);
     };
     const onscrollEditor = (event: Event) => {
       if (scrolling === "preview") {
@@ -147,7 +151,10 @@ export default function TwoPanels() {
         behavior: "auto",
         top,
       });
-      setTimeout(() => (scrolling = null), 1000);
+      clearTimeout(resetScrolling);
+      resetScrolling = setTimeout(() => {
+        scrolling = null
+      }, 1000);
     };
     editorEl.addEventListener("scroll", onscrollEditor);
     previewEl.addEventListener("scroll", onscrollPreview);
