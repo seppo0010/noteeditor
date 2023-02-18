@@ -158,12 +158,25 @@ async function readFile(f: File): Promise<string | null> {
   return null;
 }
 
+const blobToBase64 = (blob: Blob): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = (err) => {
+      reject(err);
+    };
+    reader.onloadend = () => {
+      resolve((reader.result as string).split(",")[1]);
+    };
+    reader.readAsDataURL(blob);
+  });
+};
+
 function UploadDocument({
   open,
   handleClose,
 }: {
   open: boolean;
-  handleClose: () => void;
+  handleClose: (changed: boolean) => void;
 }) {
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -189,8 +202,31 @@ function UploadDocument({
       setLoading(false);
     }
   };
+
+  const { user } = useContext(UserContext)!;
+  const { file } = useContext(FileContext)!;
+  const uploadFiles = async () => {
+    const octokit = new Octokit({ auth: user.loggedIn?.auth });
+    await Promise.all(
+      (files ?? []).map(async (f: { file: File }) => {
+        if (!file.repository) {
+          return;
+        }
+        await octokit.request("PUT /repos/{owner}/{repo}/contents/{path}", {
+          owner: file.repository.owner,
+          repo: file.repository.name,
+          path: `documents/${f.file.name}`,
+          message: "new document",
+          content: await blobToBase64(f.file),
+        });
+      })
+    );
+    setFiles([]);
+    handleClose(true);
+  };
+
   return (
-    <Dialog open={open} onClose={handleClose}>
+    <Dialog open={open} onClose={() => handleClose(false)}>
       <DialogTitle>Upload Document</DialogTitle>
       <DialogContent>
         <DialogContentText>
@@ -233,8 +269,15 @@ function UploadDocument({
         )}
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleClose}>Cancel</Button>
-        <Button onClick={handleClose}>Done</Button>
+        <Button
+          onClick={() => {
+            setFiles([]);
+            handleClose(false);
+          }}
+        >
+          Cancel
+        </Button>
+        <Button onClick={uploadFiles}>Done</Button>
       </DialogActions>
     </Dialog>
   );
@@ -242,6 +285,7 @@ function UploadDocument({
 export function Repository({ onClose }: { onClose: () => void }) {
   const { file, setFile } = useContext(FileContext)!;
   const { user } = useContext(UserContext)!;
+  const [forceRefresh, setForceRefresh] = useState("");
   const treeState = useAsync(async () => {
     if (!file.repository || !user.loggedIn) return;
     const octokit = new Octokit({ auth: user.loggedIn?.auth });
@@ -268,12 +312,18 @@ export function Repository({ onClose }: { onClose: () => void }) {
       }
     );
     return tree.filter(({ type }: { type: unknown }) => type === "blob");
-  }, [file, user]);
+  }, [file, user, forceRefresh]);
 
   const [uploadDocumentOpen, setUploadDocumentOpen] = useState(false);
-  const handleUploadDocumentClose = useCallback(() => {
-    setUploadDocumentOpen(false);
-  }, [setUploadDocumentOpen]);
+  const handleUploadDocumentClose = useCallback(
+    (changed: boolean) => {
+      if (changed) {
+        setForceRefresh(`${Math.random()}`);
+      }
+      setUploadDocumentOpen(false);
+    },
+    [setUploadDocumentOpen]
+  );
 
   const [change, setChange] = useState(false);
   if (change) {
