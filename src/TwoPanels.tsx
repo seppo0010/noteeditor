@@ -69,7 +69,11 @@ export default function TwoPanels() {
     }
     const editorEl = editorRef.current;
     const previewEl = previewRef.current;
-    const onscroll = (event: Event) => {
+    let scrolling: "editor" | "preview" | null = null;
+    const onscrollPreview = (event: Event) => {
+      if (scrolling === "editor") {
+        return;
+      }
       const middle = previewEl.scrollTop + previewEl.offsetHeight / 2;
       const closestEl = (Array.from(
         previewEl.children
@@ -79,23 +83,77 @@ export default function TwoPanels() {
           parseFloat(el.getAttribute("data-top") ?? "Infinity"),
           parseFloat(el.getAttribute("data-height") ?? "Infinity"),
         ];
-        return editorTop !== Infinity && editorHeight !== Infinity && middle < top + height;
+        return (
+          editorTop !== Infinity &&
+          editorHeight !== Infinity &&
+          middle < top + height
+        );
       });
       if (!closestEl) {
         return;
       }
-      const [top, height] = [closestEl.offsetTop, closestEl.offsetHeight];
       const [editorTop, editorHeight] = [
         parseFloat(closestEl.getAttribute("data-top") ?? "Infinity"),
         parseFloat(closestEl.getAttribute("data-height") ?? "Infinity"),
       ];
-      const relPos = (middle - top) / height;
-      editorEl.scrollTop =
+      const relPos = (middle - closestEl.offsetTop) / closestEl.offsetHeight;
+      const top =
         editorTop + relPos * editorHeight - previewEl.offsetHeight / 2;
+      if (Math.abs(top - editorEl.scrollTop) < 20) {
+        return;
+      }
+      scrolling = "preview";
+      editorEl.scrollTo({
+        behavior: "smooth",
+        top,
+      });
+      setTimeout(() => (scrolling = null), 1000);
     };
-    previewEl.addEventListener("scroll", onscroll);
+    const onscrollEditor = (event: Event) => {
+      if (scrolling === "preview") {
+        return;
+      }
+      const middle = editorEl.scrollTop + editorEl.offsetHeight / 2;
+      const closestEl = (Array.from(
+        previewEl.children
+      ) as Array<HTMLElement>).find((el: HTMLElement) => {
+        const [editorTop, editorHeight] = [
+          parseFloat(el.getAttribute("data-top") ?? "Infinity"),
+          parseFloat(el.getAttribute("data-height") ?? "Infinity"),
+        ];
+        return (
+          editorTop !== Infinity &&
+          editorHeight !== Infinity &&
+          middle < editorTop + editorHeight
+        );
+      });
+      if (!closestEl) {
+        return;
+      }
+      const [editorTop, editorHeight] = [
+        parseFloat(closestEl.getAttribute("data-top") ?? "Infinity"),
+        parseFloat(closestEl.getAttribute("data-height") ?? "Infinity"),
+      ];
+      const relPos = (middle - editorTop) / editorHeight;
+      const top =
+        closestEl.offsetTop +
+        relPos * closestEl.offsetHeight -
+        previewEl.offsetHeight / 2;
+      if (Math.abs(top - previewEl.scrollTop) < 20) {
+        return;
+      }
+      scrolling = "editor";
+      previewEl.scrollTo({
+        behavior: "auto",
+        top,
+      });
+      setTimeout(() => (scrolling = null), 1000);
+    };
+    editorEl.addEventListener("scroll", onscrollEditor);
+    previewEl.addEventListener("scroll", onscrollPreview);
     return () => {
-      previewEl.removeEventListener("scroll", onscroll);
+      editorEl.removeEventListener("scroll", onscrollEditor);
+      previewEl.removeEventListener("scroll", onscrollPreview);
     };
   }, [editorRef, previewRef]);
 
