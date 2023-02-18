@@ -164,6 +164,14 @@ export default function Frame() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const { user, setUser } = useContext(UserContext)!;
 
+  useHotkeys(
+    "esc",
+    () => {
+      setDrawerOpen(false);
+    },
+    { enableOnFormTags: true }
+  );
+
   return (
     <>
       <AppBar position="static" drawerOpen={drawerOpen}>

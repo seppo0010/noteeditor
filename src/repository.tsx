@@ -226,7 +226,13 @@ function UploadDocument({
   };
 
   return (
-    <Dialog open={open} onClose={() => handleClose(false)}>
+    <Dialog
+      open={open}
+      onClose={() => {
+        setFiles([]);
+        handleClose(false);
+      }}
+    >
       <DialogTitle>Upload Document</DialogTitle>
       <DialogContent>
         <DialogContentText>
