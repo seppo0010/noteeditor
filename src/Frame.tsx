@@ -25,6 +25,7 @@ import SearchResults from "./SearchResults";
 import { useAsync } from "react-use";
 import { search } from "./search";
 import { useHotkeys } from "react-hotkeys-hook";
+import { FileContext } from "./file";
 
 const drawerWidth = 240;
 const SearchDiv = styled("div")(({ theme }) => ({
@@ -104,9 +105,11 @@ function Search() {
   const [searchCriteria, setSearchCriteria] = useState("");
   const searchInputRef = useRef<HTMLElement | null>(null);
   const [searchResultsOpen, setSearchResultsOpen] = useState(false);
+  const { miniSearch } = useContext(FileContext)!;
   const searchResults = useAsync(async () => {
-    return search(searchCriteria);
-  }, [searchCriteria]);
+    return search(searchCriteria, miniSearch);
+  }, [searchCriteria, miniSearch]);
+
   useHotkeys(
     "meta+/",
     () => {

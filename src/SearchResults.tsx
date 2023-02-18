@@ -9,6 +9,7 @@ import { useCallback, useContext, useState } from "react";
 import { MermaidResult, Result } from "./search";
 import { SearchActionContext } from "./SearchAction";
 import { useHotkeys } from "react-hotkeys-hook";
+import { SearchResult } from "./search";
 
 function MermaidSearchResult({
   item,
@@ -25,6 +26,37 @@ function MermaidSearchResult({
       callback({
         type: "addCode",
         code: "```mermaid\n" + item.text + "\n```\n",
+      });
+    onDone && onDone();
+  }, [callback, item, onDone]);
+  useHotkeys("enter", () => selected && add(), { enableOnFormTags: true }, [
+    selected,
+    add,
+  ]);
+  return (
+    <ListItemButton selected={selected} onClick={add}>
+      <ListItemText
+        primary={<span style={{ whiteSpace: "pre" }}>{item.text}</span>}
+      />
+    </ListItemButton>
+  );
+}
+
+function ReactSearchResult({
+  item,
+  onDone,
+  selected,
+}: {
+  item: SearchResult;
+  onDone?: () => void;
+  selected: boolean;
+}) {
+  const { callback } = useContext(SearchActionContext)!;
+  const add = useCallback(() => {
+    callback &&
+      callback({
+        type: "addCode",
+        code: `###### ${item.path}\n${item.text}\n`,
       });
     onDone && onDone();
   }, [callback, item, onDone]);
@@ -91,6 +123,13 @@ export default function SearchResults({
         <ListItem key={`${index}`}>
           {item.type === "mermaid" && (
             <MermaidSearchResult
+              item={item}
+              onDone={onDone}
+              selected={index === selected}
+            />
+          )}
+          {item.type === "search" && (
+            <ReactSearchResult
               item={item}
               onDone={onDone}
               selected={index === selected}
