@@ -10,6 +10,7 @@ import { SearchAction, SearchActionContext } from "./SearchAction";
 import { useHotkeys } from "react-hotkeys-hook";
 import { Octokit } from "@octokit/rest";
 import { UserContext } from "./user";
+import { Alert, Snackbar } from "@mui/material";
 
 const defaultCode = `
 # Hello world
@@ -69,6 +70,8 @@ export default function TwoPanels() {
   const positioningRef = useRef<HTMLPreElement | null>(null);
   const [selectionStart, setSelectionStart] = useState(0);
   const [selectionEnd, setSelectionEnd] = useState(0);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [showErrorMessage, setShowErrorMessage] = useState<boolean>(false);
 
   useHotkeys(
     "esc",
@@ -242,32 +245,40 @@ export default function TwoPanels() {
       code !== loadedContent.innerContent.text
     ) {
       const octokit = new Octokit({ auth: user.loggedIn?.auth });
-      const {
-        data: { content },
-      } = await octokit.request("PUT /repos/{owner}/{repo}/contents/{path}", {
-        owner: file.repository.owner,
-        repo: file.repository.name,
-        path: loadedContent.path,
-        message: "changes",
-        content: Buffer.from(code, "binary").toString("base64"),
-        sha: loadedContent.innerContent.sha,
-      });
-      setLoadedContent({
-        path: loadedContent.path,
-        innerContent: {
-          loading: false,
-          text: code,
-          sha: content!.sha!,
-        },
-      });
-      setContent({
-        path: loadedContent.path,
-        innerContent: {
-          loading: false,
-          text: code,
-          sha: content!.sha!,
-        },
-      });
+      try {
+        const {
+          data: { content },
+        } = await octokit.request("PUT /repos/{owner}/{repo}/contents/{path}", {
+          owner: file.repository.owner,
+          repo: file.repository.name,
+          path: loadedContent.path,
+          message: "changes",
+          content: Buffer.from(code, "binary").toString("base64"),
+          sha: loadedContent.innerContent.sha,
+        });
+        setLoadedContent({
+          path: loadedContent.path,
+          innerContent: {
+            loading: false,
+            text: code,
+            sha: content!.sha!,
+          },
+        });
+        setContent({
+          path: loadedContent.path,
+          innerContent: {
+            loading: false,
+            text: code,
+            sha: content!.sha!,
+          },
+        });
+      } catch (e: unknown) {
+        const err = e as { message?: string };
+        setErrorMessage(
+          "Error saving" + (err?.message ? `: ${err.message}` : "")
+        );
+        setShowErrorMessage(true);
+      }
     }
   }, [user, loadedContent, code, file, setLoadedContent, setContent]);
   useEffect(() => {
@@ -304,6 +315,12 @@ export default function TwoPanels() {
       <div id="preview" ref={previewRef}>
         <Markdown code={code} positioningEl={positioningRef?.current} />
       </div>
+      <Snackbar
+        open={errorMessage !== null && showErrorMessage}
+        onClose={() => setShowErrorMessage(false)}
+      >
+        <Alert severity="error">{errorMessage}</Alert>
+      </Snackbar>
     </div>
   );
 }
