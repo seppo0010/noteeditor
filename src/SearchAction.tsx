@@ -14,27 +14,24 @@ export interface SearchActionAddCode {
   code: string;
 }
 export type SearchAction = SearchActionAddCode;
-export interface SearchActionOpt {
-  actions: SearchAction[];
-}
+export type SearchActionOpt = (action: SearchAction) => void;
 
 export interface SearchActionContextInterface {
-  pending: SearchActionOpt;
-  setPending: Dispatch<SetStateAction<SearchActionOpt>>;
+  callback: SearchActionOpt | null;
+  setCallback: Dispatch<SetStateAction<SearchActionOpt | null>>;
 }
 
-export const SearchActionContext = createContext<SearchActionContextInterface>({
-  pending: { actions: [] },
-  setPending: () => {},
-});
+export const SearchActionContext = createContext<SearchActionContextInterface | null>(
+  null
+);
 
 export const SearchActionProvider = ({
   children,
 }: SearchActionProviderInterface) => {
-  const [pending, setPending] = useState<SearchActionOpt>({ actions: [] });
+  const [callback, setCallback] = useState<SearchActionOpt | null>(null);
 
   return (
-    <SearchActionContext.Provider value={{ pending, setPending }}>
+    <SearchActionContext.Provider value={{ callback, setCallback }}>
       {children}
     </SearchActionContext.Provider>
   );

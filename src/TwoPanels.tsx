@@ -1,4 +1,4 @@
-import { useContext, useEffect, useRef, useState } from "react";
+import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import "./App.css";
 import Editor from "react-simple-code-editor";
 import { languages, highlight } from "prismjs";
@@ -6,7 +6,7 @@ import "prismjs/components/prism-markdown";
 import "prismjs/themes/prism.css";
 import Markdown from "./Markdown";
 import { cloneContent, Content, contentsAreEqual, FileContext } from "./file";
-import { SearchActionContext } from "./SearchAction";
+import { SearchAction, SearchActionContext } from "./SearchAction";
 import { useHotkeys } from "react-hotkeys-hook";
 
 const defaultCode = `
@@ -49,7 +49,7 @@ root((mindmap))
 `;
 export default function TwoPanels() {
   const { content } = useContext(FileContext)!;
-  const { pending, setPending } = useContext(SearchActionContext);
+  const { setCallback } = useContext(SearchActionContext)!;
   const [code, setCode] = useState(defaultCode);
   const [loadedContent, setLoadedContent] = useState<Content | null>(null);
   useEffect(() => {
@@ -80,30 +80,32 @@ export default function TwoPanels() {
     [editorRef]
   );
 
+  const myCallback = useCallback(
+    (action: SearchAction) => {
+      if (action.type === "addCode") {
+        const newCode =
+          code.substring(0, selectionStart) +
+          action.code +
+          code.substring(selectionEnd);
+        const textarea: HTMLTextAreaElement = editorRef!.current!.getElementsByTagName(
+          "textarea"
+        )[0];
+        // this is needed only to keep the cursor in the desired position
+        textarea.value = newCode;
+        textarea.setSelectionRange(
+          selectionStart + action.code.length,
+          selectionStart + action.code.length
+        );
+        textarea.focus();
+        setCode(newCode);
+      }
+    },
+    [code, selectionEnd, selectionStart, editorRef]
+  );
+
   useEffect(() => {
-    if (pending.actions.length > 0 && pending.actions[0].type === "addCode") {
-      const action = pending.actions[0];
-      const newCode =
-        code.substring(0, selectionStart) +
-        action.code +
-        code.substring(selectionEnd);
-      const textarea: HTMLTextAreaElement = editorRef!.current!.getElementsByTagName(
-        "textarea"
-      )[0];
-      // this is needed only to keep the cursor in the desired position
-      textarea.value = newCode;
-      textarea.setSelectionRange(
-        selectionStart + action.code.length,
-        selectionStart + action.code.length
-      );
-      textarea.focus();
-      setCode(newCode);
-      setPending({
-        ...pending,
-        actions: pending.actions.slice(1),
-      });
-    }
-  }, [pending, code, selectionEnd, selectionStart, setPending, editorRef]);
+    setCallback(() => myCallback);
+  }, [myCallback, setCallback]);
 
   useEffect(() => {
     if (!editorRef?.current || !previewRef?.current) {

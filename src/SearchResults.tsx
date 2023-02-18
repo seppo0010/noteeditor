@@ -19,20 +19,15 @@ function MermaidSearchResult({
   onDone?: () => void;
   selected: boolean;
 }) {
-  const { pending, setPending } = useContext(SearchActionContext);
+  const { callback } = useContext(SearchActionContext)!;
   const add = useCallback(() => {
-    setPending({
-      ...pending,
-      actions: [
-        ...pending.actions,
-        {
-          type: "addCode",
-          code: "```mermaid\n" + item.text + "\n```\n",
-        },
-      ],
-    });
+    callback &&
+      callback({
+        type: "addCode",
+        code: "```mermaid\n" + item.text + "\n```\n",
+      });
     onDone && onDone();
-  }, [pending, item, onDone, setPending]);
+  }, [callback, item, onDone]);
   useHotkeys("enter", () => selected && add(), { enableOnFormTags: true }, [
     selected,
     add,
