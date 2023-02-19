@@ -62,7 +62,10 @@ function InfolegSearchResult({
     callback &&
       callback({
         type: "addCode",
-        code: `###### ${item.title}\n\n${item.text.split('\n').map((x) => `> ${x}`).join('\n')}\n`,
+        code: `###### ${item.title}\n\n${item.text
+          .split("\n")
+          .map((x) => `> ${x}`)
+          .join("\n")}\n`,
       });
     onDone && onDone();
   }, [callback, item, onDone]);
@@ -73,9 +76,7 @@ function InfolegSearchResult({
   return (
     <ListItem>
       <ListItemButton selected={selected} onClick={add}>
-        <ListItemText
-          primary={<Markdown code={item.text} />}
-        />
+        <ListItemText primary={<Markdown code={item.text} />} />
       </ListItemButton>
     </ListItem>
   );

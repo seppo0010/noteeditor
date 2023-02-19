@@ -1,12 +1,12 @@
 import MiniSearch from "minisearch";
 import samples from "./mermaidSamples";
-import infoleg_ from './infoleg.json';
+import infoleg_ from "./infoleg.json";
 
 const infoleg: {
   [criteria: string]: {
     title: string;
     text: string;
-  },
+  };
 } = infoleg_;
 
 export interface MermaidResult {
@@ -19,7 +19,7 @@ export interface SearchResult {
   path: string;
 }
 export interface InfolegResult {
-  type: 'infoleg';
+  type: "infoleg";
   title: string;
   text: string;
 }
@@ -36,14 +36,17 @@ const searchMermaid = (criteria: string): MermaidResult[] => {
       type: "mermaid",
       text,
     }));
-  };
-const searchInfoleg = (criteria: string): InfolegResult[] => {
-  return infoleg.hasOwnProperty(criteria) ? [{
-    type: 'infoleg',
-    ...infoleg[criteria],
-  }] : [];
 };
-
+const searchInfoleg = (criteria: string): InfolegResult[] => {
+  return infoleg.hasOwnProperty(criteria)
+    ? [
+        {
+          type: "infoleg",
+          ...infoleg[criteria],
+        },
+      ]
+    : [];
+};
 
 function escapeRegExp(s: string) {
   return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
