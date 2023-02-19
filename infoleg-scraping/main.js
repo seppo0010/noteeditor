@@ -28,17 +28,29 @@ const textToArticles = async (law, html, { title }) => {
     }
     text = text.substring(match.index);
   }
-  return Object.fromEntries(text.split(/\n[\*\_\s]+art[íi]culo/ig).slice(1).map((article) => {
+  return Object.fromEntries(text.split(/\n[\*\_\s]+art[íi]culo/ig).slice(1).flatMap((article) => {
     const parts = article.match(/^\s*([0-9]+\s*(?:bis|ter|qu[aá]ter|quinquies)?)[_\.\*\\\-º\s]+([\s\S]*)/)
     if (!parts) {
-      return;
+      return [];
     }
     let key = `${law}:${parts[1]}`;
-    let value = parts[2].trim();
-    // TODO: stop on titles
-    // TODO: break into incisos/párrafos
-    return [key, value];
-  }).filter((x) => !!x));
+    let value = parts[2].split(/^[_\.\*\\\-\sA-ZÁÉÍÓÚ\s\.]+$/m)[0].trim();
+    const res = [[key, value]];
+    const incisos = value.split(/^(?:[_\.\*\\\-º\s]+)([0-9]+)(?:[_\.\*\\\-º\s]+)/mi)
+    if (incisos.length > 1) {
+      for (let i = 1; i < incisos.length; i += 2) {
+        res.push([`${key}:${incisos[i]}`, incisos[i+1].trim()]);
+      }
+    } else {
+      const paragraphs = value.split('\n').filter((v) => v.match(/[a-zA-Z]/));
+      if (paragraphs.length > 1) {
+        for (let i = 0; i < paragraphs.length; i++) {
+          res.push([`${key}:${i+1}`, paragraphs[i].trim()]);
+        }
+      }
+    }
+    return res;
+  }));
 };
 
 Promise.all(Object.entries(laws).map(async ([law, params]) => {
