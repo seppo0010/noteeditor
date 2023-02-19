@@ -2,7 +2,12 @@ import MiniSearch from "minisearch";
 import samples from "./mermaidSamples";
 import infoleg_ from './infoleg.json';
 
-const infoleg: {[criteria: string]: string} = infoleg_;
+const infoleg: {
+  [criteria: string]: {
+    title: string;
+    text: string;
+  },
+} = infoleg_;
 
 export interface MermaidResult {
   type: "mermaid";
@@ -15,7 +20,7 @@ export interface SearchResult {
 }
 export interface InfolegResult {
   type: 'infoleg';
-  criteria: string;
+  title: string;
   text: string;
 }
 export type Result = MermaidResult | SearchResult | InfolegResult;
@@ -35,8 +40,7 @@ const searchMermaid = (criteria: string): MermaidResult[] => {
 const searchInfoleg = (criteria: string): InfolegResult[] => {
   return infoleg.hasOwnProperty(criteria) ? [{
     type: 'infoleg',
-    criteria,
-    text: infoleg[criteria],
+    ...infoleg[criteria],
   }] : [];
 };
 

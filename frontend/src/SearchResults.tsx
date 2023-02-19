@@ -62,7 +62,7 @@ function InfolegSearchResult({
     callback &&
       callback({
         type: "addCode",
-        code: `###### ${item.criteria}\n${item.text.split('\n').map((x) => `> ${x}`).join('\n')}\n`,
+        code: `###### ${item.title}\n\n${item.text.split('\n').map((x) => `> ${x}`).join('\n')}\n`,
       });
     onDone && onDone();
   }, [callback, item, onDone]);
