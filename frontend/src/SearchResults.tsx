@@ -7,12 +7,13 @@ import {
   ListItemText,
 } from "@mui/material";
 import React, { useCallback, useContext, useState } from "react";
-import { MermaidResult, Result } from "./search";
+import { InfolegResult, MermaidResult, Result } from "./search";
 import { SearchActionContext } from "./SearchAction";
 import { useHotkeys } from "react-hotkeys-hook";
 import { SearchResult } from "./search";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import { FileContext } from "./file";
+import Markdown from "./Markdown";
 
 function MermaidSearchResult({
   item,
@@ -41,6 +42,39 @@ function MermaidSearchResult({
       <ListItemButton selected={selected} onClick={add}>
         <ListItemText
           primary={<span style={{ whiteSpace: "pre" }}>{item.text}</span>}
+        />
+      </ListItemButton>
+    </ListItem>
+  );
+}
+
+function InfolegSearchResult({
+  item,
+  onDone,
+  selected,
+}: {
+  item: InfolegResult;
+  onDone?: () => void;
+  selected: boolean;
+}) {
+  const { callback } = useContext(SearchActionContext)!;
+  const add = useCallback(() => {
+    callback &&
+      callback({
+        type: "addCode",
+        code: `###### ${item.criteria}\n${item.text}\n`,
+      });
+    onDone && onDone();
+  }, [callback, item, onDone]);
+  useHotkeys("enter", () => selected && add(), { enableOnFormTags: true }, [
+    selected,
+    add,
+  ]);
+  return (
+    <ListItem>
+      <ListItemButton selected={selected} onClick={add}>
+        <ListItemText
+          primary={<Markdown code={item.text} />}
         />
       </ListItemButton>
     </ListItem>
@@ -154,6 +188,13 @@ export default function SearchResults({
           {item.type === "search" && (
             <ReactSearchResult
               repository={file.repository}
+              item={item}
+              onDone={onDone}
+              selected={index === selected}
+            />
+          )}
+          {item.type === "infoleg" && (
+            <InfolegSearchResult
               item={item}
               onDone={onDone}
               selected={index === selected}

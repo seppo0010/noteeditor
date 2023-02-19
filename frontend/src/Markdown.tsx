@@ -46,11 +46,11 @@ export default function Markdown({
   positioningEl,
 }: {
   code: string;
-  positioningEl: HTMLPreElement | null;
+  positioningEl?: HTMLPreElement | null;
 }): JSX.Element {
   const processor = unified()
     .use(remarkParse)
-    .use([addBoundingBox(positioningEl)])
+    .use([addBoundingBox(positioningEl ?? null)])
     .use([remarkMermaidPlugin])
     .use(remarkRehype, { allowDangerousHtml: true })
     .use([rehypeRaw]);

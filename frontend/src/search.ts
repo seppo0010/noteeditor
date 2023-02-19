@@ -1,5 +1,8 @@
 import MiniSearch from "minisearch";
 import samples from "./mermaidSamples";
+import infoleg_ from './infoleg.json';
+
+const infoleg: {[criteria: string]: string} = infoleg_;
 
 export interface MermaidResult {
   type: "mermaid";
@@ -10,7 +13,12 @@ export interface SearchResult {
   text: string;
   path: string;
 }
-export type Result = MermaidResult | SearchResult;
+export interface InfolegResult {
+  type: 'infoleg';
+  criteria: string;
+  text: string;
+}
+export type Result = MermaidResult | SearchResult | InfolegResult;
 
 const searchMermaid = (criteria: string): MermaidResult[] => {
   const prefix = "mermaid:";
@@ -23,7 +31,15 @@ const searchMermaid = (criteria: string): MermaidResult[] => {
       type: "mermaid",
       text,
     }));
+  };
+const searchInfoleg = (criteria: string): InfolegResult[] => {
+  return infoleg.hasOwnProperty(criteria) ? [{
+    type: 'infoleg',
+    criteria,
+    text: infoleg[criteria],
+  }] : [];
 };
+
 
 function escapeRegExp(s: string) {
   return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -59,5 +75,9 @@ export async function search(
   if (criteria === "") {
     return [];
   }
-  return [...searchMermaid(criteria), ...searchDocuments(criteria, miniSearch)];
+  return [
+    ...searchInfoleg(criteria),
+    ...searchMermaid(criteria),
+    ...searchDocuments(criteria, miniSearch),
+  ];
 }
