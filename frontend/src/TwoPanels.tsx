@@ -310,7 +310,7 @@ export default function TwoPanels() {
             );
             setSelectionEnd((event.target as HTMLTextAreaElement).selectionEnd);
           }}
-          style={{ height: '100%' }}
+          style={{ height: "100%" }}
           padding={10}
         />
       </div>
