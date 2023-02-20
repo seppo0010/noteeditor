@@ -80,7 +80,6 @@ const searchDocuments = (criteria: string): SearchResult[] => {
 };
 
 export async function search(criteria: string): Promise<Result[]> {
-  debugger;
   if (criteria === "") {
     return [];
   }
@@ -92,7 +91,6 @@ export async function search(criteria: string): Promise<Result[]> {
 }
 
 export async function setMiniSearchData(data: string | null): Promise<void> {
-  debugger;
   if (data === null) {
     miniSearch = null;
   } else {
