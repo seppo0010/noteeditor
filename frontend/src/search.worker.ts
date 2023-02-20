@@ -103,7 +103,7 @@ export async function search(criteria: string): Promise<Result[]> {
     ...searchInfoleg(criteria),
     ...searchMermaid(criteria),
     ...searchDocuments(criteria),
-  ];
+  ].slice(0, 10);
 }
 
 export async function setMiniSearchData(data: string | null): Promise<void> {
