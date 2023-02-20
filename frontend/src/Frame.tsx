@@ -25,8 +25,6 @@ import SearchResults from "./SearchResults";
 import { useAsync } from "react-use";
 import { useHotkeys } from "react-hotkeys-hook";
 import { SearchContext } from "./SearchProvider";
-// eslint-disable-next-line import/no-webpack-loader-syntax
-const Worker = require("workerize-loader!./search.worker");
 
 const drawerWidth = 240;
 const SearchDiv = styled("div")(({ theme }) => ({

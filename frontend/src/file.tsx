@@ -10,8 +10,6 @@ import {
 } from "react";
 import { SearchContext } from "./SearchProvider";
 import { UserContext } from "./user";
-// eslint-disable-next-line import/no-webpack-loader-syntax
-const Worker = require("workerize-loader!./search.worker");
 
 export interface FileProviderInterface {
   children: ReactNode[] | ReactNode;

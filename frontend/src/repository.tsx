@@ -29,8 +29,6 @@ import { useAsync } from "react-use";
 import * as pdfjsLib from "pdfjs-dist";
 import { TextItem, TextMarkedContent } from "pdfjs-dist/types/src/display/api";
 import { SearchContext } from "./SearchProvider";
-// eslint-disable-next-line import/no-webpack-loader-syntax
-const Worker = require("workerize-loader!./search.worker");
 pdfjsLib.GlobalWorkerOptions.workerSrc =
   "//cdnjs.cloudflare.com/ajax/libs/pdf.js/3.3.122/pdf.worker.js";
 
