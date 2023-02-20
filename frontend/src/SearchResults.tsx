@@ -7,10 +7,14 @@ import {
   ListItemText,
 } from "@mui/material";
 import React, { useCallback, useContext, useState } from "react";
-import { InfolegResult, MermaidResult, Result } from "./search";
 import { SearchActionContext } from "./SearchAction";
 import { useHotkeys } from "react-hotkeys-hook";
-import { SearchResult } from "./search";
+import type {
+  SearchResult,
+  InfolegResult,
+  MermaidResult,
+  Result,
+} from "./search.worker";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import { FileContext } from "./file";
 import Markdown from "./Markdown";

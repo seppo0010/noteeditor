@@ -1,5 +1,4 @@
 import { Octokit } from "@octokit/rest";
-import MiniSearch, { Options } from "minisearch";
 import {
   ReactNode,
   useState,
@@ -9,7 +8,10 @@ import {
   Dispatch,
   useContext,
 } from "react";
+import { SearchContext } from "./SearchProvider";
 import { UserContext } from "./user";
+// eslint-disable-next-line import/no-webpack-loader-syntax
+const Worker = require("workerize-loader!./search.worker");
 
 export interface FileProviderInterface {
   children: ReactNode[] | ReactNode;
@@ -61,16 +63,9 @@ export interface FileContextInterface {
   setFile: Dispatch<SetStateAction<FileOpt>>;
   content: Content | null;
   setContent: Dispatch<SetStateAction<Content | null>>;
-  miniSearch: MiniSearch | null;
 }
 
 export const FileContext = createContext<FileContextInterface | null>(null);
-
-const miniSearchOptions: Options = {
-  idField: "path",
-  fields: ["text"],
-  storeFields: ["path", "text"],
-};
 
 export const FileProvider = ({ children }: FileProviderInterface) => {
   const [file, setFile] = useState<FileOpt>(
@@ -78,8 +73,8 @@ export const FileProvider = ({ children }: FileProviderInterface) => {
   );
 
   const { user } = useContext(UserContext)!;
+  const { search } = useContext(SearchContext)!;
   const [content, setContent] = useState<Content | null>(null);
-  const [miniSearch, setMiniSearch] = useState<MiniSearch | null>(null);
 
   useEffect(() => {
     const auth = user.loggedIn?.auth;
@@ -135,7 +130,7 @@ export const FileProvider = ({ children }: FileProviderInterface) => {
     (async () => {
       const { repository } = file;
       if (!repository) {
-        setMiniSearch(null);
+        search.searchWorker.setMiniSearchData(null);
         return;
       }
 
@@ -156,16 +151,16 @@ export const FileProvider = ({ children }: FileProviderInterface) => {
           throw new Error(`Unexpected encoding ${JSON.stringify(data)}`);
         }
         const text = decode((data as { content: string }).content);
-        setMiniSearch(MiniSearch.loadJSON(text, miniSearchOptions));
+        search.searchWorker.setMiniSearchData(text);
       } catch (e) {
         if ((e as undefined | { message?: string })?.message === "Not Found") {
-          setMiniSearch(new MiniSearch(miniSearchOptions));
+          search.searchWorker.setMiniSearchData(null);
         } else {
           console.error({ e });
         }
       }
     })();
-  }, [file, user]);
+  }, [file, user, search]);
 
   useEffect(() => {
     if (file) {
@@ -174,9 +169,7 @@ export const FileProvider = ({ children }: FileProviderInterface) => {
   }, [file]);
 
   return (
-    <FileContext.Provider
-      value={{ file, setFile, content, setContent, miniSearch }}
-    >
+    <FileContext.Provider value={{ file, setFile, content, setContent }}>
       {children}
     </FileContext.Provider>
   );

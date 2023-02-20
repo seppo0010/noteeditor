@@ -23,9 +23,10 @@ import { LoginLogoutAvatar } from "./loginlogout";
 import { Repository } from "./repository";
 import SearchResults from "./SearchResults";
 import { useAsync } from "react-use";
-import { search } from "./search";
 import { useHotkeys } from "react-hotkeys-hook";
-import { FileContext } from "./file";
+import { SearchContext } from "./SearchProvider";
+// eslint-disable-next-line import/no-webpack-loader-syntax
+const Worker = require("workerize-loader!./search.worker");
 
 const drawerWidth = 240;
 const SearchDiv = styled("div")(({ theme }) => ({
@@ -105,10 +106,10 @@ function Search() {
   const [searchCriteria, setSearchCriteria] = useState("");
   const searchInputRef = useRef<HTMLElement | null>(null);
   const [searchResultsOpen, setSearchResultsOpen] = useState(false);
-  const { miniSearch } = useContext(FileContext)!;
+  const { search } = useContext(SearchContext)!;
   const searchResults = useAsync(async () => {
-    return search(searchCriteria, miniSearch);
-  }, [searchCriteria, miniSearch]);
+    return search.searchWorker.search(searchCriteria);
+  }, [searchCriteria, search]);
 
   useHotkeys(
     "meta+/",

@@ -7,6 +7,7 @@ import { UserProvider } from "./user";
 import { FileProvider } from "./file";
 import TwoPanels from "./TwoPanels";
 import { SearchActionProvider } from "./SearchAction";
+import { SearchProvider } from "./SearchProvider";
 
 const darkTheme = createTheme({
   palette: {
@@ -19,16 +20,18 @@ const darkTheme = createTheme({
 
 function App() {
   return (
-    <UserProvider>
-      <FileProvider>
-        <SearchActionProvider>
-          <ThemeProvider theme={darkTheme}>
-            <Frame />
-            <TwoPanels />
-          </ThemeProvider>
-        </SearchActionProvider>
-      </FileProvider>
-    </UserProvider>
+    <SearchProvider>
+      <UserProvider>
+        <FileProvider>
+          <SearchActionProvider>
+            <ThemeProvider theme={darkTheme}>
+              <Frame />
+              <TwoPanels />
+            </ThemeProvider>
+          </SearchActionProvider>
+        </FileProvider>
+      </UserProvider>
+    </SearchProvider>
   );
 }
 

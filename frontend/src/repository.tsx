@@ -28,6 +28,9 @@ import AddIcon from "@mui/icons-material/Add";
 import { useAsync } from "react-use";
 import * as pdfjsLib from "pdfjs-dist";
 import { TextItem, TextMarkedContent } from "pdfjs-dist/types/src/display/api";
+import { SearchContext } from "./SearchProvider";
+// eslint-disable-next-line import/no-webpack-loader-syntax
+const Worker = require("workerize-loader!./search.worker");
 pdfjsLib.GlobalWorkerOptions.workerSrc =
   "//cdnjs.cloudflare.com/ajax/libs/pdf.js/3.3.122/pdf.worker.js";
 
@@ -204,14 +207,15 @@ function UploadDocument({
   };
 
   const { user } = useContext(UserContext)!;
-  const { file, miniSearch } = useContext(FileContext)!;
+  const { file } = useContext(FileContext)!;
+  const { search } = useContext(SearchContext)!;
   const uploadFiles = async () => {
     if (!files) {
       handleClose(false);
       return;
     }
     const octokit = new Octokit({ auth: user.loggedIn?.auth });
-    if (!file.repository || !miniSearch) {
+    if (!file.repository) {
       return;
     }
     const repository = Object.assign({}, file.repository);
@@ -226,7 +230,7 @@ function UploadDocument({
         });
       })
     );
-    miniSearch.addAll(
+    const newData = await search.searchWorker.addMiniSearchData(
       files.map(({ file, content }) => ({
         path: file.name,
         text: content,
@@ -237,9 +241,7 @@ function UploadDocument({
       repo: repository.name,
       path: `minisearch.json`,
       message: "new document",
-      content: await blobToBase64(
-        new Blob([JSON.stringify(miniSearch.toJSON())])
-      ),
+      content: await blobToBase64(new Blob([newData])),
     });
 
     setFiles([]);

@@ -1,6 +1,13 @@
-import MiniSearch from "minisearch";
+import MiniSearch, { Options } from "minisearch";
 import samples from "./mermaidSamples";
 import infoleg_ from "./infoleg.json";
+
+const miniSearchOptions: Options = {
+  idField: "path",
+  fields: ["text"],
+  storeFields: ["path", "text"],
+};
+let miniSearch: MiniSearch | null = null;
 
 const infoleg: {
   [criteria: string]: {
@@ -52,10 +59,7 @@ function escapeRegExp(s: string) {
   return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-const searchDocuments = (
-  criteria: string,
-  miniSearch: MiniSearch | null
-): SearchResult[] => {
+const searchDocuments = (criteria: string): SearchResult[] => {
   if (miniSearch === null) {
     return [];
   }
@@ -75,16 +79,28 @@ const searchDocuments = (
     .slice(0, 10) as SearchResult[];
 };
 
-export async function search(
-  criteria: string,
-  miniSearch: MiniSearch | null
-): Promise<Result[]> {
+export async function search(criteria: string): Promise<Result[]> {
+  debugger;
   if (criteria === "") {
     return [];
   }
   return [
     ...searchInfoleg(criteria),
     ...searchMermaid(criteria),
-    ...searchDocuments(criteria, miniSearch),
+    ...searchDocuments(criteria),
   ];
+}
+
+export async function setMiniSearchData(data: string | null): Promise<void> {
+  debugger;
+  if (data === null) {
+    miniSearch = null;
+  } else {
+    miniSearch = MiniSearch.loadJSON(data, miniSearchOptions);
+  }
+}
+
+export async function addMiniSearchData(data: any[]): Promise<string | null> {
+  miniSearch?.addAll(data);
+  return JSON.stringify(miniSearch?.toJSON());
 }
