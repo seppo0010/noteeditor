@@ -1,8 +1,9 @@
-.MuiPaper-root, .MuiPopover-root {
-    width: 100%;
-    max-height: calc(100% - 64px);
+.MuiPaper-root,
+.MuiPopover-root {
+  width: 100%;
+  max-height: calc(100% - 64px);
 }
 
 .MuiPopover-root {
-    font-size: 0.8rem;
+  font-size: 0.8rem;
 }

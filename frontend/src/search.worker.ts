@@ -64,11 +64,14 @@ const searchInfoleg = (criteria: string): InfolegResult[] => {
           ...infoleg[criteria],
         },
       ]
-    : miniSearchInfoleg.search(criteria).slice(0, 10).map((res) => ({
-        type: "infoleg",
-        text: res.text,
-        title: res.title,
-      }));
+    : miniSearchInfoleg
+        .search(criteria)
+        .slice(0, 10)
+        .map((res) => ({
+          type: "infoleg",
+          text: res.text,
+          title: res.title,
+        }));
 };
 
 function escapeRegExp(s: string) {
@@ -83,14 +86,13 @@ const searchDocuments = (criteria: string): SearchResult[] => {
     .search(criteria)
     .flatMap((res) => {
       const { text } = (res as unknown) as { text: string };
-      const indices = Array.from(
-        text.matchAll(new RegExp(escapeRegExp(criteria), "ig"))
-      ).map((e) => e.index ?? 0);
-      return indices.map((i: number) => ({
-        type: "search",
-        text: text.substring(i, i + 100),
-        path: res.path,
-      }));
+      return Array.from(text.matchAll(new RegExp(escapeRegExp(criteria), "ig")))
+        .map((e) => e.index ?? 0)
+        .map((i: number) => ({
+          type: "search",
+          text: text.substring(i, i + 100),
+          path: res.path,
+        }));
     })
     .slice(0, 10) as SearchResult[];
 };

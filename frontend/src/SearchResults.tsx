@@ -18,7 +18,7 @@ import type {
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import { FileContext } from "./file";
 import Markdown from "./Markdown";
-import './SearchResults.css'
+import "./SearchResults.css";
 
 function MermaidSearchResult({
   item,
@@ -175,10 +175,18 @@ export default function SearchResults({
     return <CircularProgress />;
   }
   if (error) {
-    return <List><ListItem>{error?.message ?? "Unexpected error"}</ListItem></List>;
+    return (
+      <List>
+        <ListItem>{error?.message ?? "Unexpected error"}</ListItem>
+      </List>
+    );
   }
   if (value?.length === 0) {
-    return <List><ListItem>No results</ListItem></List>;
+    return (
+      <List>
+        <ListItem>No results</ListItem>
+      </List>
+    );
   }
   return (
     <List>
