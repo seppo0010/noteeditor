@@ -18,6 +18,7 @@ import type {
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import { FileContext } from "./file";
 import Markdown from "./Markdown";
+import './SearchResults.css'
 
 function MermaidSearchResult({
   item,
@@ -174,10 +175,10 @@ export default function SearchResults({
     return <CircularProgress />;
   }
   if (error) {
-    return <p>{error?.message ?? "Unexpected error"}</p>;
+    return <List><ListItem>{error?.message ?? "Unexpected error"}</ListItem></List>;
   }
   if (value?.length === 0) {
-    return <p>No results</p>;
+    return <List><ListItem>No results</ListItem></List>;
   }
   return (
     <List>
