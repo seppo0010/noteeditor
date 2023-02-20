@@ -64,7 +64,7 @@ const searchInfoleg = (criteria: string): InfolegResult[] => {
           ...infoleg[criteria],
         },
       ]
-    : miniSearchInfoleg.search(criteria).map((res) => ({
+    : miniSearchInfoleg.search(criteria).slice(0, 10).map((res) => ({
         type: "infoleg",
         text: res.text,
         title: res.title,
