@@ -82,17 +82,24 @@ const searchDocuments = (criteria: string): SearchResult[] => {
   if (miniSearch === null) {
     return [];
   }
+  const previewText = (text: string, index: number, path: string) => {
+    const maybeStarts = text.substring(0, index).lastIndexOf("\n");
+    const starts = maybeStarts === -1 ? 0 : maybeStarts;
+    const maybeEnds = text.substring(index).indexOf("\n");
+    const ends = maybeEnds === -1 ? text.length : index + maybeEnds;
+    return {
+      type: "search",
+      text: text.substring(starts, ends),
+      path: path,
+    };
+  };
   return miniSearch
     .search(criteria)
     .flatMap((res) => {
       const { text } = (res as unknown) as { text: string };
       return Array.from(text.matchAll(new RegExp(escapeRegExp(criteria), "ig")))
         .map((e) => e.index ?? 0)
-        .map((i: number) => ({
-          type: "search",
-          text: text.substring(i, i + 100),
-          path: res.path,
-        }));
+        .map((i: number) => previewText(text, i, res.path));
     })
     .slice(0, 10) as SearchResult[];
 };
