@@ -2,19 +2,31 @@ import MiniSearch, { Options } from "minisearch";
 import samples from "./mermaidSamples";
 import infoleg_ from "./infoleg.json";
 
-const miniSearchOptions: Options = {
-  idField: "path",
-  fields: ["text"],
-  storeFields: ["path", "text"],
-};
-let miniSearch: MiniSearch | null = null;
-
 const infoleg: {
   [criteria: string]: {
     title: string;
     text: string;
   };
 } = infoleg_;
+
+const miniSearchOptions: Options = {
+  idField: "path",
+  fields: ["text"],
+  storeFields: ["path", "text"],
+};
+let miniSearch: MiniSearch | null = null;
+const miniSearchInfoleg = new MiniSearch({
+  idField: "key",
+  fields: ["text"],
+  storeFields: ["title", "text"],
+});
+miniSearchInfoleg.addAll(
+  Object.entries(infoleg).map(([key, { title, text }]) => ({
+    key,
+    title,
+    text,
+  }))
+);
 
 export interface MermaidResult {
   type: "mermaid";
@@ -52,7 +64,11 @@ const searchInfoleg = (criteria: string): InfolegResult[] => {
           ...infoleg[criteria],
         },
       ]
-    : [];
+    : miniSearchInfoleg.search(criteria).map((res) => ({
+        type: "infoleg",
+        text: res.text,
+        title: res.title,
+      }));
 };
 
 function escapeRegExp(s: string) {

@@ -1,7 +1,4 @@
-import {
-  ReactNode,
-  createContext,
-} from "react";
+import { ReactNode, createContext } from "react";
 // eslint-disable-next-line import/no-webpack-loader-syntax
 const Worker = require("workerize-loader!./search.worker");
 
@@ -28,4 +25,3 @@ export const SearchProvider = ({ children }: SearchProviderInterface) => {
     </SearchContext.Provider>
   );
 };
-
