@@ -92,6 +92,7 @@ export default function Editor(args: Props) {
   const [options, setOptions] = useState<{ show: string; insert: string }[]>(
     []
   );
+  const [selectedOption, setSelectedOption] = useState(0);
 
   const { callback } = useContext(SearchActionContext)!;
   const add = useCallback(
@@ -113,6 +114,7 @@ export default function Editor(args: Props) {
     const options = getOptions(ta.value, ta.selectionEnd);
     if (options.length === 0) {
       setOptions([]);
+      setPopoverPosition(null);
       return;
     }
     setOptions(options);
@@ -142,6 +144,7 @@ export default function Editor(args: Props) {
       left: x + width,
     });
     targetNode.parentNode?.removeChild(targetNode);
+    setSelectedOption(0);
   };
   useHotkeys("ctrl+space", updatePopoverPosition, { enableOnFormTags: true }, [
     ref,
@@ -159,12 +162,30 @@ export default function Editor(args: Props) {
       React.KeyboardEvent<HTMLTextAreaElement>
   ) => {
     if (args?.onKeyDown) args.onKeyDown(ev);
-    if (ev.key === "Escape") {
+    if (popoverPosition === null) {
+      return;
+    }
+    if (ev.key === "Enter") {
+      ev.preventDefault();
+      ev.stopPropagation();
+      callback &&
+        callback({
+          type: "addCode",
+          code: options[selectedOption].insert,
+        });
+      setPopoverPosition(null);
+    } else if (ev.key === "ArrowDown") {
+      ev.preventDefault();
+      ev.stopPropagation();
+      setSelectedOption((selectedOption + 1) % options.length);
+    } else if (ev.key === "ArrowUp") {
+      ev.preventDefault();
+      ev.stopPropagation();
+      setSelectedOption((selectedOption - 1) % options.length);
+    } else if (ev.key === "Escape") {
       setPopoverPosition(null);
     } else {
-      if (popoverPosition !== null) {
-        updatePopoverPosition();
-      }
+      setTimeout(updatePopoverPosition);
     }
   };
   return (
@@ -188,9 +209,12 @@ export default function Editor(args: Props) {
         }}
       >
         <List>
-          {options.slice(0, 20).map(({ show, insert }) => (
+          {options.slice(0, 20).map(({ show, insert }, i) => (
             <ListItem key={show}>
-              <ListItemButton onClick={() => add(insert)}>
+              <ListItemButton
+                onClick={() => add(insert)}
+                selected={selectedOption === i}
+              >
                 <ListItemText>{show}</ListItemText>
               </ListItemButton>
             </ListItem>

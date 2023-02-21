@@ -75,8 +75,6 @@ export default function TwoPanels() {
   const previewRef = useRef<HTMLDivElement | null>(null);
   const positioningRef = useRef<HTMLPreElement | null>(null);
   const showTextRef = useRef<HTMLDivElement | null>(null);
-  const [selectionStart, setSelectionStart] = useState(0);
-  const [selectionEnd, setSelectionEnd] = useState(0);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [showErrorMessage, setShowErrorMessage] = useState<boolean>(false);
   const [showText, setShowText] = useState<{
@@ -86,26 +84,27 @@ export default function TwoPanels() {
     ends: number;
   } | null>(null);
 
+  const getTextarea = useCallback((): HTMLTextAreaElement | undefined => {
+    return editorRef.current?.getElementsByTagName("textarea")[0];
+  }, [editorRef]);
+
   useHotkeys(
     "esc",
     () => {
       setShowText(null);
-      const textarea:
-        | HTMLTextAreaElement
-        | undefined = editorRef?.current?.getElementsByTagName("textarea")[0];
-      textarea?.focus();
+      getTextarea()?.focus();
     },
     { enableOnFormTags: true },
-    [editorRef, setShowText]
+    [editorRef, setShowText, getTextarea, editorRef]
   );
 
   const myCallback = useCallback(
     (action: SearchAction) => {
       if (action.type === "addCode") {
         const newCode =
-          code.substring(0, selectionStart) +
+          code.substring(0, getTextarea()?.selectionStart ?? 0) +
           action.code +
-          code.substring(selectionEnd);
+          code.substring(getTextarea()?.selectionEnd ?? 0);
         const textarea: HTMLTextAreaElement = editorRef!.current!.getElementsByTagName(
           "textarea"
         )[0];
@@ -113,8 +112,8 @@ export default function TwoPanels() {
         textarea.value = newCode;
         setTimeout(() => {
           textarea.setSelectionRange(
-            selectionStart + action.code.length,
-            selectionStart + action.code.length
+            (getTextarea()?.selectionStart ?? 0) + action.code.length,
+            (getTextarea()?.selectionStart ?? 0) + action.code.length
           );
           textarea.focus();
         });
@@ -124,7 +123,7 @@ export default function TwoPanels() {
         setShowText({ ...action });
       }
     },
-    [code, selectionEnd, selectionStart, editorRef]
+    [code, editorRef, getTextarea]
   );
 
   useEffect(() => {
@@ -328,9 +327,7 @@ export default function TwoPanels() {
     if (showText === null) {
       return;
     }
-    const insertTextarea = showTextRef.current?.getElementsByTagName(
-      "textarea"
-    )[0];
+    const insertTextarea = getTextarea();
     if (!insertTextarea) {
       return;
     }
@@ -359,12 +356,6 @@ export default function TwoPanels() {
           value={code}
           onValueChange={(code) => setCode(code)}
           highlight={(code) => highlight(code, languages.markdown, "md")}
-          onBlur={(event) => {
-            setSelectionStart(
-              (event.target as HTMLTextAreaElement).selectionStart
-            );
-            setSelectionEnd((event.target as HTMLTextAreaElement).selectionEnd);
-          }}
           style={{ height: "100%" }}
           padding={10}
         />
