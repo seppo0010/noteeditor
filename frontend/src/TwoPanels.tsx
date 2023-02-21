@@ -1,6 +1,6 @@
 import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import "./App.css";
-import Editor from "react-simple-code-editor";
+import Editor from "./Editor";
 import { languages, highlight } from "prismjs";
 import "prismjs/components/prism-markdown";
 import "prismjs/themes/prism.css";
