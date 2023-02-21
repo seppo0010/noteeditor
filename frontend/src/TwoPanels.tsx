@@ -101,19 +101,18 @@ export default function TwoPanels() {
   const myCallback = useCallback(
     (action: SearchAction) => {
       if (action.type === "addCode") {
+        const textarea = getTextarea()!;
         const newCode =
-          code.substring(0, getTextarea()?.selectionStart ?? 0) +
+          code.substring(0, textarea.selectionStart ?? 0) +
           action.code +
-          code.substring(getTextarea()?.selectionEnd ?? 0);
-        const textarea: HTMLTextAreaElement = editorRef!.current!.getElementsByTagName(
-          "textarea"
-        )[0];
+          code.substring(textarea.selectionEnd ?? 0);
+        const selectionStart = textarea.selectionStart;
         // this is needed only to keep the cursor in the desired position
         textarea.value = newCode;
         setTimeout(() => {
           textarea.setSelectionRange(
-            (getTextarea()?.selectionStart ?? 0) + action.code.length,
-            (getTextarea()?.selectionStart ?? 0) + action.code.length
+            selectionStart + action.code.length,
+            selectionStart + action.code.length
           );
           textarea.focus();
         });
@@ -123,7 +122,7 @@ export default function TwoPanels() {
         setShowText({ ...action });
       }
     },
-    [code, editorRef, getTextarea]
+    [code, getTextarea]
   );
 
   useEffect(() => {
@@ -327,7 +326,9 @@ export default function TwoPanels() {
     if (showText === null) {
       return;
     }
-    const insertTextarea = getTextarea();
+    const insertTextarea = showTextRef.current?.getElementsByTagName(
+      "textarea"
+    )[0];
     if (!insertTextarea) {
       return;
     }

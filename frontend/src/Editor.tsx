@@ -136,8 +136,8 @@ export default function Editor(args: Props) {
     ta.parentNode?.appendChild(targetNode);
     targetNode.textContent = ta.value;
     const range = document.createRange();
-    range.setStart(targetNode.childNodes[0], ta.selectionStart + 1);
-    range.setEnd(targetNode.childNodes[0], ta.selectionEnd + 1);
+    range.setStart(targetNode.childNodes[0], ta.selectionStart);
+    range.setEnd(targetNode.childNodes[0], ta.selectionEnd);
     const { x, y, width, height } = range.getBoundingClientRect();
     setPopoverPosition({
       top: y + height,
