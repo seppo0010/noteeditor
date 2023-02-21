@@ -8,7 +8,13 @@ import {
   ListItemText,
   Snackbar,
 } from "@mui/material";
-import React, { useCallback, useContext, useState } from "react";
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { SearchActionContext } from "./SearchAction";
 import { useHotkeys } from "react-hotkeys-hook";
 import type {
@@ -44,8 +50,19 @@ function MermaidSearchResult({
     selected,
     add,
   ]);
+  const [wasSelected, setWasSelected] = useState(false);
+  const ref = useRef<HTMLLIElement | null>(null);
+  useEffect(() => {
+    if (selected !== wasSelected) {
+      setWasSelected(selected);
+      if (!ref?.current) {
+        return;
+      }
+      ref.current.scrollIntoView();
+    }
+  }, [selected, wasSelected, ref]);
   return (
-    <ListItem>
+    <ListItem ref={ref}>
       <ListItemButton selected={selected} onClick={add}>
         <ListItemText
           primary={<span style={{ whiteSpace: "pre" }}>{item.text}</span>}
@@ -80,8 +97,19 @@ function InfolegSearchResult({
     selected,
     add,
   ]);
+  const [wasSelected, setWasSelected] = useState(false);
+  const ref = useRef<HTMLLIElement | null>(null);
+  useEffect(() => {
+    if (selected !== wasSelected) {
+      setWasSelected(selected);
+      if (!ref?.current) {
+        return;
+      }
+      ref.current.scrollIntoView();
+    }
+  }, [selected, wasSelected, ref]);
   return (
-    <ListItem>
+    <ListItem ref={ref}>
       <ListItemButton selected={selected} onClick={add}>
         <ListItemText primary={<Markdown code={item.text} />} />
       </ListItemButton>
@@ -116,8 +144,20 @@ function ReactSearchResult({
     selected,
     add,
   ]);
+  const [wasSelected, setWasSelected] = useState(false);
+  const ref = useRef<HTMLLIElement | null>(null);
+  useEffect(() => {
+    if (selected !== wasSelected) {
+      setWasSelected(selected);
+      if (!ref?.current) {
+        return;
+      }
+      ref.current.scrollIntoView();
+    }
+  }, [selected, wasSelected, ref]);
   return (
     <ListItem
+      ref={ref}
       secondaryAction={
         repository && (
           <IconButton

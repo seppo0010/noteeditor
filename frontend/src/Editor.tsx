@@ -1,4 +1,10 @@
-import React, { useCallback, useContext, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import BaseEditor from "react-simple-code-editor";
 import { useHotkeys } from "react-hotkeys-hook";
 import {
@@ -83,6 +89,35 @@ function getOptions(
   }
   return [];
 }
+
+function Option({
+  text,
+  onClick,
+  selected,
+}: {
+  text: string;
+  onClick: () => void;
+  selected: boolean;
+}) {
+  const [wasSelected, setWasSelected] = useState(false);
+  const ref = useRef<HTMLLIElement | null>(null);
+  useEffect(() => {
+    if (selected !== wasSelected) {
+      setWasSelected(selected);
+      if (selected) {
+        ref?.current?.scrollIntoView();
+      }
+    }
+  }, [wasSelected, selected]);
+  return (
+    <ListItem ref={ref}>
+      <ListItemButton onClick={onClick} selected={selected}>
+        <ListItemText>{text}</ListItemText>
+      </ListItemButton>
+    </ListItem>
+  );
+}
+
 export default function Editor(args: Props) {
   const ref = useRef<HTMLDivElement | null>(null);
   const [popoverPosition, setPopoverPosition] = useState<{
@@ -210,14 +245,12 @@ export default function Editor(args: Props) {
       >
         <List>
           {options.slice(0, 20).map(({ show, insert }, i) => (
-            <ListItem key={show}>
-              <ListItemButton
-                onClick={() => add(insert)}
-                selected={selectedOption === i}
-              >
-                <ListItemText>{show}</ListItemText>
-              </ListItemButton>
-            </ListItem>
+            <Option
+              text={show}
+              onClick={() => add(insert)}
+              selected={i === selectedOption}
+              key={show}
+            />
           ))}
         </List>
       </Popover>
