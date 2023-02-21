@@ -10,7 +10,7 @@ import { SearchAction, SearchActionContext } from "./SearchAction";
 import { useHotkeys } from "react-hotkeys-hook";
 import { Octokit } from "@octokit/rest";
 import { UserContext } from "./user";
-import { Alert, Snackbar } from "@mui/material";
+import { Alert, Box, Button, Modal, Snackbar } from "@mui/material";
 
 const defaultCode = `
 # Hello world
@@ -68,21 +68,29 @@ export default function TwoPanels() {
   const editorRef = useRef<HTMLDivElement | null>(null);
   const previewRef = useRef<HTMLDivElement | null>(null);
   const positioningRef = useRef<HTMLPreElement | null>(null);
+  const showTextRef = useRef<HTMLDivElement | null>(null);
   const [selectionStart, setSelectionStart] = useState(0);
   const [selectionEnd, setSelectionEnd] = useState(0);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [showErrorMessage, setShowErrorMessage] = useState<boolean>(false);
+  const [showText, setShowText] = useState<{
+    path: string;
+    code: string;
+    starts: number;
+    ends: number;
+  } | null>(null);
 
   useHotkeys(
     "esc",
     () => {
+      setShowText(null);
       const textarea:
         | HTMLTextAreaElement
         | undefined = editorRef?.current?.getElementsByTagName("textarea")[0];
       textarea?.focus();
     },
     { enableOnFormTags: true },
-    [editorRef]
+    [editorRef, setShowText]
   );
 
   const myCallback = useCallback(
@@ -103,6 +111,9 @@ export default function TwoPanels() {
         );
         textarea.focus();
         setCode(newCode);
+      }
+      if (action.type === "showText") {
+        setShowText({ ...action });
       }
     },
     [code, selectionEnd, selectionStart, editorRef]
@@ -283,6 +294,18 @@ export default function TwoPanels() {
   }, [user, loadedContent, code, file, setLoadedContent, setContent]);
 
   useEffect(() => {
+    const tss = showTextRef?.current?.getElementsByTagName("textarea");
+    if (tss && tss.length > 0) {
+      const ts = tss[0];
+      if (showText) {
+        ts.value = showText.code;
+        ts.setSelectionRange(showText.starts, showText.ends);
+        setTimeout(() => ts.focus());
+      }
+    }
+  }, [showText, showTextRef]);
+
+  useEffect(() => {
     const timeout = setTimeout(save, 30000);
     return () => clearTimeout(timeout);
   }, [save, user, loadedContent, code, file, setLoadedContent, setContent]);
@@ -294,6 +317,34 @@ export default function TwoPanels() {
     },
     { enableOnFormTags: true },
     [save, user, loadedContent, code, file, setLoadedContent, setContent]
+  );
+  const insertShowText = () => {
+      if (showText === null) {
+        return;
+      }
+      const insertTextarea = showTextRef.current?.getElementsByTagName('textarea')[0]
+      if (!insertTextarea) {
+        return;
+      }
+      myCallback({
+        type: "addCode",
+        code: `###### ${showText.path}\n\n${insertTextarea.value
+          .substring(insertTextarea.selectionStart, insertTextarea.selectionEnd)
+          .split("\n")
+          .map((x) => `> ${x}`)
+          .join("\n")}\n`,
+      });
+      setShowText(null);
+      const textarea:
+        | HTMLTextAreaElement
+        | undefined = editorRef?.current?.getElementsByTagName("textarea")[0];
+      textarea?.focus();
+  }
+  useHotkeys(
+    "meta+enter, ctrl+enter",
+    insertShowText,
+    { enableOnFormTags: true },
+    [showText, setShowText, myCallback, showTextRef]
   );
 
   return (
@@ -323,6 +374,36 @@ export default function TwoPanels() {
       >
         <Alert severity="error">{errorMessage}</Alert>
       </Snackbar>
+      <Modal
+        open={showText !== null}
+        onClose={() => setShowText(null)}
+        disablePortal
+        ref={showTextRef}
+      >
+        <Box
+          sx={{
+            width: "80vw",
+            margin: "10vh 10vw",
+            height: "80vh",
+            background: "white",
+          }}
+        >
+          <textarea
+            value={showText?.code ?? ""}
+            onChange={() => {}}
+            style={{
+              width: "calc(100% - 20px)",
+              height: "calc(100% - 64px)",
+              overflow: "auto",
+              padding: 10,
+              border: 0,
+              margin: 0,
+            }}
+          />
+          <Button title="ctrl+enter/cmd+enter" onClick={insertShowText}>Insert</Button>
+          <Button title="esc" onClick={() => setShowText(null)}>Cancel</Button>
+        </Box>
+      </Modal>
     </div>
   );
 }

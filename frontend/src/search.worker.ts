@@ -36,6 +36,8 @@ export interface SearchResult {
   type: "search";
   text: string;
   path: string;
+  starts: number;
+  ends: number;
 }
 export interface InfolegResult {
   type: "infoleg";
@@ -89,8 +91,10 @@ const searchDocuments = (criteria: string): SearchResult[] => {
     const ends = maybeEnds === -1 ? text.length : index + maybeEnds;
     return {
       type: "search",
-      text: text.substring(starts, ends),
-      path: path,
+      text,
+      starts,
+      ends,
+      path,
     };
   };
   return miniSearch

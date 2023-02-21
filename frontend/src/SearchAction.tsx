@@ -13,7 +13,14 @@ export interface SearchActionAddCode {
   type: "addCode";
   code: string;
 }
-export type SearchAction = SearchActionAddCode;
+export interface SearchActionShowText {
+  type: "showText";
+  starts: number;
+  ends: number;
+  path: string;
+  code: string;
+}
+export type SearchAction = SearchActionAddCode | SearchActionShowText;
 export type SearchActionOpt = (action: SearchAction) => void;
 
 export interface SearchActionContextInterface {

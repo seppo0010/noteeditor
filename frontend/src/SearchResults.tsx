@@ -1,10 +1,12 @@
 import {
+  Alert,
   CircularProgress,
   IconButton,
   List,
   ListItem,
   ListItemButton,
   ListItemText,
+  Snackbar,
 } from "@mui/material";
 import React, { useCallback, useContext, useState } from "react";
 import { SearchActionContext } from "./SearchAction";
@@ -102,8 +104,11 @@ function ReactSearchResult({
   const add = useCallback(() => {
     callback &&
       callback({
-        type: "addCode",
-        code: `###### ${item.path}\n${item.text}\n`,
+        type: "showText",
+        starts: item.starts,
+        ends: item.ends,
+        path: item.path,
+        code: item.text,
       });
     onDone && onDone();
   }, [callback, item, onDone]);
@@ -128,7 +133,11 @@ function ReactSearchResult({
     >
       <ListItemButton selected={selected} onClick={add}>
         <ListItemText
-          primary={<span style={{ whiteSpace: "pre" }}>{item.text}</span>}
+          primary={
+            <span style={{ whiteSpace: "pre" }}>
+              {item.text.substring(item.starts, item.ends)}
+            </span>
+          }
         />
       </ListItemButton>
     </ListItem>
@@ -176,9 +185,9 @@ export default function SearchResults({
   }
   if (error) {
     return (
-      <List>
-        <ListItem>{error?.message ?? "Unexpected error"}</ListItem>
-      </List>
+      <Snackbar open={true}>
+        <Alert severity="error">{error?.message ?? "Unexpected error"}</Alert>
+      </Snackbar>
     );
   }
   if (value?.length === 0) {
