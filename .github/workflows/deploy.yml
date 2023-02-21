@@ -1,0 +1,31 @@
+name: Deployment
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: Use Node.js 16.18.12
+      uses: actions/setup-node@v1
+      with:
+        node-version: 16.18.12
+    - name: Install Packages
+      run: npm install
+      working-directory: frontend
+    - name: Build page
+      run: npm run build
+      working-directory: frontend
+    - name: Deploy
+      uses: s0/git-publish-subdir-action@develop
+      env:
+        REPO: self
+        BRANCH: gh-pages
+        FOLDER: frontend/build/
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
