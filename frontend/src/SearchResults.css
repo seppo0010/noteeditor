@@ -1,9 +1,9 @@
-.MuiPaper-root,
-.MuiPopover-root {
+.searchResults .MuiPaper-root,
+.searchResults .MuiPopover-root {
   width: 100%;
   max-height: calc(100% - 64px);
 }
 
-.MuiPopover-root {
+.searchResults .MuiPopover-root {
   font-size: 0.8rem;
 }

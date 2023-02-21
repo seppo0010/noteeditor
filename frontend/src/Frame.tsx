@@ -134,6 +134,7 @@ function Search() {
       />
       {searchCriteria !== "" && (
         <Popover
+          className="searchResults"
           open={searchResultsOpen}
           onClose={() => setSearchResultsOpen(false)}
           disableAutoFocus={true}

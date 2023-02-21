@@ -105,11 +105,13 @@ export default function TwoPanels() {
         )[0];
         // this is needed only to keep the cursor in the desired position
         textarea.value = newCode;
-        textarea.setSelectionRange(
-          selectionStart + action.code.length,
-          selectionStart + action.code.length
-        );
-        textarea.focus();
+        setTimeout(() => {
+          textarea.setSelectionRange(
+            selectionStart + action.code.length,
+            selectionStart + action.code.length
+          );
+          textarea.focus();
+        });
         setCode(newCode);
       }
       if (action.type === "showText") {
@@ -319,32 +321,30 @@ export default function TwoPanels() {
     [save, user, loadedContent, code, file, setLoadedContent, setContent]
   );
   const insertShowText = () => {
-      if (showText === null) {
-        return;
-      }
-      const insertTextarea = showTextRef.current?.getElementsByTagName('textarea')[0]
-      if (!insertTextarea) {
-        return;
-      }
-      myCallback({
-        type: "addCode",
-        code: `###### ${showText.path}\n\n${insertTextarea.value
-          .substring(insertTextarea.selectionStart, insertTextarea.selectionEnd)
-          .split("\n")
-          .map((x) => `> ${x}`)
-          .join("\n")}\n`,
-      });
-      setShowText(null);
-      const textarea:
-        | HTMLTextAreaElement
-        | undefined = editorRef?.current?.getElementsByTagName("textarea")[0];
-      textarea?.focus();
-  }
+    if (showText === null) {
+      return;
+    }
+    const insertTextarea = showTextRef.current?.getElementsByTagName(
+      "textarea"
+    )[0];
+    if (!insertTextarea) {
+      return;
+    }
+    myCallback({
+      type: "addCode",
+      code: `###### ${showText.path}\n\n${insertTextarea.value
+        .substring(insertTextarea.selectionStart, insertTextarea.selectionEnd)
+        .split("\n")
+        .map((x) => `> ${x}`)
+        .join("\n")}\n`,
+    });
+    setShowText(null);
+  };
   useHotkeys(
     "meta+enter, ctrl+enter",
     insertShowText,
     { enableOnFormTags: true },
-    [showText, setShowText, myCallback, showTextRef]
+    [showText, setShowText, myCallback, showTextRef, myCallback]
   );
 
   return (
@@ -388,6 +388,7 @@ export default function TwoPanels() {
             background: "white",
           }}
         >
+          Select text to insert
           <textarea
             value={showText?.code ?? ""}
             onChange={() => {}}
@@ -400,8 +401,12 @@ export default function TwoPanels() {
               margin: 0,
             }}
           />
-          <Button title="ctrl+enter/cmd+enter" onClick={insertShowText}>Insert</Button>
-          <Button title="esc" onClick={() => setShowText(null)}>Cancel</Button>
+          <Button title="ctrl+enter/cmd+enter" onClick={insertShowText}>
+            Insert
+          </Button>
+          <Button title="esc" onClick={() => setShowText(null)}>
+            Cancel
+          </Button>
         </Box>
       </Modal>
     </div>
