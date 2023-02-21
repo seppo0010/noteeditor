@@ -77,10 +77,10 @@ export const FileProvider = ({ children }: FileProviderInterface) => {
   useEffect(() => {
     const auth = user.loggedIn?.auth;
     if (!auth) {
-      throw new Error("No user context");
+      return;
     }
     if (!file.repository) {
-      throw new Error("selecting path but no context was set");
+      return;
     }
     if (file.path !== content?.path) {
       if (file.path) {
@@ -123,7 +123,7 @@ export const FileProvider = ({ children }: FileProviderInterface) => {
   useEffect(() => {
     const auth = user.loggedIn?.auth;
     if (!auth) {
-      throw new Error("No user context");
+      return;
     }
     (async () => {
       const { repository } = file;
