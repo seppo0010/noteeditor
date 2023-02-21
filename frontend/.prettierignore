@@ -1,0 +1,8 @@
+build
+package-lock.json
+package.json
+src/infoleg.json
+tsconfig.json
+config-overrides.js
+src/react-app-env.d.ts
+src/reportWebVitals.ts

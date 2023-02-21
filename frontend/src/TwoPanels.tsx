@@ -51,19 +51,25 @@ root((mindmap))
 \`\`\`
 `;
 export default function TwoPanels() {
-  const { content, setContent } = useContext(FileContext)!;
+  const { user } = useContext(UserContext)!;
+  const { file, content, setContent } = useContext(FileContext)!;
   const { setCallback } = useContext(SearchActionContext)!;
-  const [code, setCode] = useState(defaultCode);
+  const [code, setCode] = useState("");
   const [loadedContent, setLoadedContent] = useState<Content | null>(null);
   useEffect(() => {
+    if (user.loggedIn === undefined) {
+      setCode(defaultCode);
+      return;
+    }
     if (
       content !== null &&
-      (loadedContent === null || !contentsAreEqual(content, loadedContent))
+      (loadedContent === null || !contentsAreEqual(content, loadedContent)) &&
+      !content.innerContent.loading
     ) {
       setLoadedContent(cloneContent(content));
       setCode(content.innerContent.text ?? "");
     }
-  }, [content, loadedContent]);
+  }, [user, content, loadedContent]);
 
   const editorRef = useRef<HTMLDivElement | null>(null);
   const previewRef = useRef<HTMLDivElement | null>(null);
@@ -249,8 +255,6 @@ export default function TwoPanels() {
     targetNode.style.left = "0";
   }, [editorRef, positioningRef]);
 
-  const { user } = useContext(UserContext)!;
-  const { file } = useContext(FileContext)!;
   const save = useCallback(async () => {
     if (
       loadedContent &&
