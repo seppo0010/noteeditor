@@ -224,7 +224,7 @@ export default function Editor(args: Props) {
     }
   };
   return (
-    <div ref={ref} style={{ height: "100%" }}>
+    <div ref={ref} style={{ minHeight: "100%" }}>
       <BaseEditor onKeyDown={onKeyDown} {...args} />
 
       <Popover
