@@ -11,6 +11,7 @@ import { useHotkeys } from "react-hotkeys-hook";
 import { Octokit } from "@octokit/rest";
 import { UserContext } from "./user";
 import { Alert, Box, Button, Modal, Snackbar } from "@mui/material";
+import { useDebounce } from "react-use";
 
 const defaultCode = `
 # Hello world
@@ -349,6 +350,15 @@ export default function TwoPanels() {
     [showText, setShowText, myCallback, showTextRef, myCallback]
   );
 
+  const [debounceCode, setDebounceCode] = useState("");
+  useDebounce(
+    () => {
+      setDebounceCode(code);
+    },
+    2000,
+    [setDebounceCode, code]
+  );
+
   return (
     <div id="app" style={{ position: "relative" }}>
       <div id="editor" ref={editorRef}>
@@ -362,7 +372,7 @@ export default function TwoPanels() {
         />
       </div>
       <div id="preview" ref={previewRef}>
-        <Markdown code={code} positioningEl={positioningRef?.current} />
+        <Markdown code={debounceCode} positioningEl={positioningRef?.current} />
       </div>
       <Snackbar
         open={errorMessage !== null && showErrorMessage}
