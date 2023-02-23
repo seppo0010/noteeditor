@@ -10,7 +10,7 @@ import { SearchAction, SearchActionContext } from "./SearchAction";
 import { useHotkeys } from "react-hotkeys-hook";
 import { Octokit } from "@octokit/rest";
 import { UserContext } from "./user";
-import { Alert, Box, Button, Modal, Snackbar } from "@mui/material";
+import { Alert, AlertColor, Box, Button, Modal, Snackbar } from "@mui/material";
 import { useDebounce } from "react-use";
 
 const defaultCode = `
@@ -76,8 +76,11 @@ export default function TwoPanels() {
   const previewRef = useRef<HTMLDivElement | null>(null);
   const positioningRef = useRef<HTMLPreElement | null>(null);
   const showTextRef = useRef<HTMLDivElement | null>(null);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [showErrorMessage, setShowErrorMessage] = useState<boolean>(false);
+  const [message, setMessage] = useState<{
+    text: string;
+    severity: AlertColor;
+  } | null>(null);
+  const [showMessage, setShowMessage] = useState<boolean>(false);
   const [showText, setShowText] = useState<{
     path: string;
     code: string;
@@ -288,12 +291,18 @@ export default function TwoPanels() {
             sha: content!.sha!,
           },
         });
+        setMessage({
+          text: "Changes saved",
+          severity: "success",
+        });
+        setShowMessage(true);
       } catch (e: unknown) {
         const err = e as { message?: string };
-        setErrorMessage(
-          "Error saving" + (err?.message ? `: ${err.message}` : "")
-        );
-        setShowErrorMessage(true);
+        setMessage({
+          text: "Error saving" + (err?.message ? `: ${err.message}` : ""),
+          severity: "error",
+        });
+        setShowMessage(true);
       }
     }
   }, [user, loadedContent, code, file, setLoadedContent, setContent]);
@@ -375,10 +384,12 @@ export default function TwoPanels() {
         <Markdown code={debounceCode} positioningEl={positioningRef?.current} />
       </div>
       <Snackbar
-        open={errorMessage !== null && showErrorMessage}
-        onClose={() => setShowErrorMessage(false)}
+        open={message !== null && showMessage}
+        onClose={() => setShowMessage(false)}
       >
-        <Alert severity="error">{errorMessage}</Alert>
+        <Alert severity={message?.severity ?? "error"}>
+          {message?.text ?? "Something happened"}
+        </Alert>
       </Snackbar>
       <Modal
         open={showText !== null}
