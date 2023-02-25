@@ -79,6 +79,7 @@ export default function TwoPanels() {
   const [message, setMessage] = useState<{
     text: string;
     severity: AlertColor;
+    autoHideDuration?: number;
   } | null>(null);
   const [showMessage, setShowMessage] = useState<boolean>(false);
   const [showText, setShowText] = useState<{
@@ -140,6 +141,7 @@ export default function TwoPanels() {
         setMessage({
           text: "Changes saved",
           severity: "success",
+          autoHideDuration: 1000,
         });
         setShowMessage(true);
       } catch (e: unknown) {
@@ -398,6 +400,7 @@ export default function TwoPanels() {
         <Markdown code={debounceCode} positioningEl={positioningRef?.current} />
       </div>
       <Snackbar
+        autoHideDuration={message?.autoHideDuration}
         open={message !== null && showMessage}
         onClose={() => setShowMessage(false)}
       >
