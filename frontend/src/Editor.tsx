@@ -14,7 +14,7 @@ import {
   ListItemText,
   Popover,
 } from "@mui/material";
-import { SearchActionContext } from "./SearchAction";
+import { ActionContext } from "./Action";
 
 declare type Padding<T> =
   | T
@@ -129,7 +129,7 @@ export default function Editor(args: Props) {
   );
   const [selectedOption, setSelectedOption] = useState(0);
 
-  const { callback } = useContext(SearchActionContext)!;
+  const { callback } = useContext(ActionContext)!;
   const add = useCallback(
     (code: string) => {
       callback &&

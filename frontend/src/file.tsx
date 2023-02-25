@@ -61,6 +61,8 @@ export interface FileContextInterface {
   setFile: Dispatch<SetStateAction<FileOpt>>;
   content: Content | null;
   setContent: Dispatch<SetStateAction<Content | null>>;
+  saving: boolean;
+  setSaving: Dispatch<SetStateAction<boolean>>;
 }
 
 export const FileContext = createContext<FileContextInterface | null>(null);
@@ -73,6 +75,7 @@ export const FileProvider = ({ children }: FileProviderInterface) => {
   const { user } = useContext(UserContext)!;
   const { search } = useContext(SearchContext)!;
   const [content, setContent] = useState<Content | null>(null);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     const auth = user.loggedIn?.auth;
@@ -167,7 +170,9 @@ export const FileProvider = ({ children }: FileProviderInterface) => {
   }, [file]);
 
   return (
-    <FileContext.Provider value={{ file, setFile, content, setContent }}>
+    <FileContext.Provider
+      value={{ file, setFile, content, setContent, saving, setSaving }}
+    >
       {children}
     </FileContext.Provider>
   );

@@ -5,6 +5,7 @@ import "prismjs/themes/prism.css";
 import MuiAppBar from "@mui/material/AppBar";
 import Toolbar from "@mui/material/Toolbar";
 import IconButton from "@mui/material/IconButton";
+import SaveIcon from "@mui/icons-material/Save";
 import MenuIcon from "@mui/icons-material/Menu";
 import SearchIcon from "@mui/icons-material/Search";
 import Typography from "@mui/material/Typography";
@@ -16,6 +17,7 @@ import {
   List,
   AppBarProps as MuiAppBarProps,
   Popover,
+  Tooltip,
 } from "@mui/material";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import { UserContext } from "./user";
@@ -25,6 +27,8 @@ import SearchResults from "./SearchResults";
 import { useAsync } from "react-use";
 import { useHotkeys } from "react-hotkeys-hook";
 import { SearchContext } from "./SearchProvider";
+import { FileContext } from "./file";
+import { ActionContext } from "./Action";
 
 const drawerWidth = 240;
 const SearchDiv = styled("div")(({ theme }) => ({
@@ -166,6 +170,8 @@ function Search() {
 export default function Frame() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const { user, setUser } = useContext(UserContext)!;
+  const { saving } = useContext(FileContext)!;
+  const { callback } = useContext(ActionContext)!;
 
   useHotkeys(
     "esc",
@@ -198,6 +204,14 @@ export default function Frame() {
             noteeditor
           </Typography>
           <Search />
+          <Tooltip title={saving ? "Saving..." : "Save"}>
+            <IconButton
+              onClick={() => callback && callback({ type: "save" })}
+              disabled={saving}
+            >
+              <SaveIcon />
+            </IconButton>
+          </Tooltip>
           <LoginLogoutAvatar user={user} setUser={setUser} />
         </Toolbar>
       </AppBar>

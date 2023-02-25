@@ -15,7 +15,7 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { SearchActionContext } from "./SearchAction";
+import { ActionContext } from "./Action";
 import { useHotkeys } from "react-hotkeys-hook";
 import type {
   SearchResult,
@@ -37,7 +37,7 @@ function MermaidSearchResult({
   onDone?: () => void;
   selected: boolean;
 }) {
-  const { callback } = useContext(SearchActionContext)!;
+  const { callback } = useContext(ActionContext)!;
   const add = useCallback(() => {
     callback &&
       callback({
@@ -81,7 +81,7 @@ function InfolegSearchResult({
   onDone?: () => void;
   selected: boolean;
 }) {
-  const { callback } = useContext(SearchActionContext)!;
+  const { callback } = useContext(ActionContext)!;
   const add = useCallback(() => {
     callback &&
       callback({
@@ -128,7 +128,7 @@ function ReactSearchResult({
   selected: boolean;
   repository: { owner: string; name: string } | undefined;
 }) {
-  const { callback } = useContext(SearchActionContext)!;
+  const { callback } = useContext(ActionContext)!;
   const add = useCallback(() => {
     callback &&
       callback({

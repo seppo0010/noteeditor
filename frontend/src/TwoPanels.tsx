@@ -6,7 +6,7 @@ import "prismjs/components/prism-markdown";
 import "prismjs/themes/prism.css";
 import Markdown from "./Markdown";
 import { cloneContent, Content, contentsAreEqual, FileContext } from "./file";
-import { SearchAction, SearchActionContext } from "./SearchAction";
+import { Action, ActionContext } from "./Action";
 import { useHotkeys } from "react-hotkeys-hook";
 import { Octokit } from "@octokit/rest";
 import { UserContext } from "./user";
@@ -53,8 +53,8 @@ root((mindmap))
 `;
 export default function TwoPanels() {
   const { user } = useContext(UserContext)!;
-  const { file, content, setContent } = useContext(FileContext)!;
-  const { setCallback } = useContext(SearchActionContext)!;
+  const { file, content, setContent, setSaving } = useContext(FileContext)!;
+  const { setCallback } = useContext(ActionContext)!;
   const [code, setCode] = useState("");
   const [loadedContent, setLoadedContent] = useState<Content | null>(null);
   useEffect(() => {
@@ -102,8 +102,69 @@ export default function TwoPanels() {
     [editorRef, setShowText, getTextarea, editorRef]
   );
 
+  const save = useCallback(async () => {
+    if (
+      loadedContent &&
+      file.repository &&
+      code !== loadedContent.innerContent.text
+    ) {
+      setSaving(true);
+      const octokit = new Octokit({ auth: user.loggedIn?.auth });
+      try {
+        const {
+          data: { content },
+        } = await octokit.request("PUT /repos/{owner}/{repo}/contents/{path}", {
+          owner: file.repository.owner,
+          repo: file.repository.name,
+          path: loadedContent.path,
+          message: "changes",
+          content: Buffer.from(code, "binary").toString("base64"),
+          sha: loadedContent.innerContent.sha,
+        });
+        setLoadedContent({
+          path: loadedContent.path,
+          innerContent: {
+            loading: false,
+            text: code,
+            sha: content!.sha!,
+          },
+        });
+        setContent({
+          path: loadedContent.path,
+          innerContent: {
+            loading: false,
+            text: code,
+            sha: content!.sha!,
+          },
+        });
+        setMessage({
+          text: "Changes saved",
+          severity: "success",
+        });
+        setShowMessage(true);
+      } catch (e: unknown) {
+        const err = e as { message?: string };
+        setMessage({
+          text: "Error saving" + (err?.message ? `: ${err.message}` : ""),
+          severity: "error",
+        });
+        setShowMessage(true);
+      } finally {
+        setSaving(false);
+      }
+    }
+  }, [
+    user,
+    loadedContent,
+    code,
+    file,
+    setLoadedContent,
+    setContent,
+    setSaving,
+  ]);
+
   const myCallback = useCallback(
-    (action: SearchAction) => {
+    (action: Action) => {
       if (action.type === "addCode") {
         const textarea = getTextarea()!;
         const newCode =
@@ -125,8 +186,11 @@ export default function TwoPanels() {
       if (action.type === "showText") {
         setShowText({ ...action });
       }
+      if (action.type === "save") {
+        save();
+      }
     },
-    [code, getTextarea]
+    [code, getTextarea, save]
   );
 
   useEffect(() => {
@@ -256,56 +320,6 @@ export default function TwoPanels() {
     targetNode.style.top = "0";
     targetNode.style.left = "0";
   }, [editorRef, positioningRef]);
-
-  const save = useCallback(async () => {
-    if (
-      loadedContent &&
-      file.repository &&
-      code !== loadedContent.innerContent.text
-    ) {
-      const octokit = new Octokit({ auth: user.loggedIn?.auth });
-      try {
-        const {
-          data: { content },
-        } = await octokit.request("PUT /repos/{owner}/{repo}/contents/{path}", {
-          owner: file.repository.owner,
-          repo: file.repository.name,
-          path: loadedContent.path,
-          message: "changes",
-          content: Buffer.from(code, "binary").toString("base64"),
-          sha: loadedContent.innerContent.sha,
-        });
-        setLoadedContent({
-          path: loadedContent.path,
-          innerContent: {
-            loading: false,
-            text: code,
-            sha: content!.sha!,
-          },
-        });
-        setContent({
-          path: loadedContent.path,
-          innerContent: {
-            loading: false,
-            text: code,
-            sha: content!.sha!,
-          },
-        });
-        setMessage({
-          text: "Changes saved",
-          severity: "success",
-        });
-        setShowMessage(true);
-      } catch (e: unknown) {
-        const err = e as { message?: string };
-        setMessage({
-          text: "Error saving" + (err?.message ? `: ${err.message}` : ""),
-          severity: "error",
-        });
-        setShowMessage(true);
-      }
-    }
-  }, [user, loadedContent, code, file, setLoadedContent, setContent]);
 
   useEffect(() => {
     const tss = showTextRef?.current?.getElementsByTagName("textarea");
