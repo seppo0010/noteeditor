@@ -170,7 +170,7 @@ function Search() {
 export default function Frame() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const { user, setUser } = useContext(UserContext)!;
-  const { saving } = useContext(FileContext)!;
+  const { file, setFile, saving } = useContext(FileContext)!;
   const { callback } = useContext(ActionContext)!;
 
   useHotkeys(
@@ -201,18 +201,26 @@ export default function Frame() {
             component="div"
             sx={{ flexGrow: 1, display: { xs: "none", sm: "block" } }}
           >
-            noteeditor
+            noteeditor{file.path ? ` - ${file.path}` : ``}
           </Typography>
           <Search />
-          <Tooltip title={saving ? "Saving..." : "Save"}>
+          <Tooltip
+            title={
+              file.path
+                ? saving
+                  ? "Saving..."
+                  : `Save ${file.path}`
+                : "No file selected"
+            }
+          >
             <IconButton
               onClick={() => callback && callback({ type: "save" })}
-              disabled={saving}
+              disabled={saving || !file.path}
             >
               <SaveIcon />
             </IconButton>
           </Tooltip>
-          <LoginLogoutAvatar user={user} setUser={setUser} />
+          <LoginLogoutAvatar user={user} setUser={setUser} setFile={setFile} />
         </Toolbar>
       </AppBar>
       <Drawer

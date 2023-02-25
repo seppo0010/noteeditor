@@ -66,7 +66,32 @@ function PickRepository({
     return <></>;
   }
   if (loadingRepos) {
-    return <>Loading...</>;
+    return (
+      <TextField
+        label="Repository"
+        value={repositoryInputValue}
+        onChange={(ev: React.ChangeEvent<HTMLInputElement>) =>
+          setRepositoryInputValue(ev?.target?.value ?? "")
+        }
+        onKeyDown={(ev: React.KeyboardEvent) => {
+          if (ev.key === "Enter") {
+            const segments = repositoryInputValue.split("/");
+            if (segments.length !== 2) {
+              return;
+            }
+            const [owner, name] = segments;
+            setFile({
+              ...file,
+              repository: {
+                owner,
+                name,
+              },
+            });
+            onDone();
+          }
+        }}
+      />
+    );
   }
   return (
     <Autocomplete
@@ -172,6 +197,78 @@ const blobToBase64 = (blob: Blob): Promise<string> => {
   });
 };
 
+function CreateEmptyFile({
+  open,
+  handleClose,
+}: {
+  open: boolean;
+  handleClose: (changed: boolean) => void;
+}) {
+  const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [fileName, setFileName] = useState("");
+
+  const { user } = useContext(UserContext)!;
+  const { file, setFile } = useContext(FileContext)!;
+
+  const createFile = async () => {
+    if (fileName === "") {
+      setErrorMessage("File name is needed.");
+      return;
+    }
+    setErrorMessage("");
+    setLoading(true);
+    const octokit = new Octokit({ auth: user.loggedIn?.auth });
+    if (!file.repository) {
+      return;
+    }
+    const repository = Object.assign({}, file.repository);
+    try {
+      await octokit.request("PUT /repos/{owner}/{repo}/contents/{path}", {
+        owner: repository.owner,
+        repo: repository.name,
+        path: `${fileName}`,
+        message: "new file",
+        content: "",
+      });
+      handleClose(true);
+      setFile({
+        ...file,
+        path: fileName,
+      });
+    } catch (e) {
+      setErrorMessage(
+        (e as { message?: string } | undefined)?.message ?? "Unexpected error"
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+  return (
+    <Dialog
+      open={open}
+      onClose={() => {
+        handleClose(false);
+      }}
+    >
+      <DialogTitle>Create file</DialogTitle>
+      <DialogContent>
+        <Input
+          placeholder="MyFile.md"
+          onChange={(ev: React.ChangeEvent<HTMLInputElement>) =>
+            setFileName(ev?.target?.value ?? "")
+          }
+        />
+        {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
+        {loading && <CircularProgress />}
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={() => handleClose(false)}>Cancel</Button>
+        <Button onClick={createFile}>Done</Button>
+      </DialogActions>
+    </Dialog>
+  );
+}
 function UploadDocument({
   open,
   handleClose,
@@ -351,6 +448,16 @@ export function Repository({ onClose }: { onClose: () => void }) {
     },
     [setUploadDocumentOpen]
   );
+  const [createEmptyFileOpen, setCreateEmptyFileOpen] = useState(false);
+  const handleCreateEmptyFileClose = useCallback(
+    (changed: boolean) => {
+      if (changed) {
+        setForceRefresh(`${Math.random()}`);
+      }
+      setCreateEmptyFileOpen(false);
+    },
+    [setCreateEmptyFileOpen]
+  );
 
   const [change, setChange] = useState(false);
   if (change) {
@@ -383,6 +490,18 @@ export function Repository({ onClose }: { onClose: () => void }) {
         <UploadDocument
           open={uploadDocumentOpen}
           handleClose={handleUploadDocumentClose}
+        />
+      </ListItem>
+      <ListItem>
+        <ListItemButton onClick={() => setCreateEmptyFileOpen(true)}>
+          <ListItemIcon>
+            <AddIcon />
+          </ListItemIcon>
+          <ListItemText primary="Create empty file" />
+        </ListItemButton>
+        <CreateEmptyFile
+          open={createEmptyFileOpen}
+          handleClose={handleCreateEmptyFileClose}
         />
       </ListItem>
       <Tree

@@ -22,6 +22,7 @@ import {
 import { Octokit } from "@octokit/rest";
 import { UserContextInterface, UserOpt } from "./user";
 import { Logout } from "@mui/icons-material";
+import { FileOpt } from "./file";
 
 function LoginToGitHub({
   isOpen,
@@ -102,7 +103,11 @@ function LoginToGitHub({
   );
 }
 
-export function LoginLogoutAvatar({ user, setUser }: UserContextInterface) {
+export function LoginLogoutAvatar({
+  user,
+  setUser,
+  setFile,
+}: UserContextInterface & { setFile: Dispatch<SetStateAction<FileOpt>> }) {
   const [
     accountSettingsAnchorEl,
     setAccountSettingsAnchorEl,
@@ -161,6 +166,7 @@ export function LoginLogoutAvatar({ user, setUser }: UserContextInterface) {
         <MenuItem
           onClick={() => {
             setUser({ ...user, loggedIn: undefined });
+            setFile({});
             setAccountSettingsAnchorEl(null);
           }}
         >

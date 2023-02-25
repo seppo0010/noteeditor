@@ -336,6 +336,9 @@ export default function TwoPanels() {
   }, [showText, showTextRef]);
 
   useEffect(() => {
+    if (!loadedContent?.path) {
+      return;
+    }
     const timeout = setTimeout(save, 30000);
     return () => clearTimeout(timeout);
   }, [save, user, loadedContent, code, file, setLoadedContent, setContent]);
