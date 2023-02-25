@@ -1,7 +1,7 @@
 {
   "files": {
     "main.css": "/noteeditor/static/css/main.54fa3257.css",
-    "main.js": "/noteeditor/static/js/main.4283d5bc.js",
+    "main.js": "/noteeditor/static/js/main.13aacfac.js",
     "static/js/283.bad52cd6.chunk.js": "/noteeditor/static/js/283.bad52cd6.chunk.js",
     "static/js/787.4dff3569.chunk.js": "/noteeditor/static/js/787.4dff3569.chunk.js",
     "worker.js": "/noteeditor/ddabaf5741b55b0532ab.worker.js",
@@ -15,12 +15,12 @@
     "static/media/fa-v4compatibility.woff2": "/noteeditor/static/media/fa-v4compatibility.497d535001197a9c5b38.woff2",
     "index.html": "/noteeditor/index.html",
     "main.54fa3257.css.map": "/noteeditor/static/css/main.54fa3257.css.map",
-    "main.4283d5bc.js.map": "/noteeditor/static/js/main.4283d5bc.js.map",
+    "main.13aacfac.js.map": "/noteeditor/static/js/main.13aacfac.js.map",
     "283.bad52cd6.chunk.js.map": "/noteeditor/static/js/283.bad52cd6.chunk.js.map",
     "787.4dff3569.chunk.js.map": "/noteeditor/static/js/787.4dff3569.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.54fa3257.css",
-    "static/js/main.4283d5bc.js"
+    "static/js/main.13aacfac.js"
   ]
 }
