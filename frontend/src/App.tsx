@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import "prismjs";
 import "./App.css";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
@@ -19,6 +19,16 @@ const darkTheme = createTheme({
 });
 
 function App() {
+  useEffect(() => {
+    const beforeUnloadListener = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      return event.returnValue = 'Are you sure you want to exit?';
+    };
+
+    window.addEventListener("beforeunload", beforeUnloadListener, {capture: true});
+    return () => window.removeEventListener("beforeunload", beforeUnloadListener, {capture: true});
+  }, [])
+
   return (
     <SearchProvider>
       <UserProvider>
