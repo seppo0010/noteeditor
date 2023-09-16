@@ -2,6 +2,7 @@ import React from "react";
 import { Pluggable, unified } from "unified";
 import remarkParse from "remark-parse";
 import remarkRehype from "remark-rehype";
+import remarkGfm from 'remark-gfm';
 import rehypeRaw from "rehype-raw";
 import remarkMermaidPlugin from "./mermaid";
 import { VFile } from "vfile";
@@ -52,6 +53,7 @@ export default function Markdown({
     .use(remarkParse)
     .use([addBoundingBox(positioningEl ?? null)])
     .use([remarkMermaidPlugin])
+    .use(remarkGfm)
     .use(remarkRehype, { allowDangerousHtml: true })
     .use([rehypeRaw]);
 
