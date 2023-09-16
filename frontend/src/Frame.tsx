@@ -5,6 +5,7 @@ import "prismjs/themes/prism.css";
 import MuiAppBar from "@mui/material/AppBar";
 import Toolbar from "@mui/material/Toolbar";
 import IconButton from "@mui/material/IconButton";
+import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import SaveIcon from "@mui/icons-material/Save";
 import MenuIcon from "@mui/icons-material/Menu";
 import SearchIcon from "@mui/icons-material/Search";
@@ -183,7 +184,7 @@ export default function Frame() {
 
   return (
     <>
-      <AppBar position="static" drawerOpen={drawerOpen}>
+      <AppBar position="static" className="appbar" drawerOpen={drawerOpen}>
         <Toolbar>
           <IconButton
             size="large"
@@ -218,6 +219,13 @@ export default function Frame() {
               disabled={saving || !file.path}
             >
               <SaveIcon />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="Download PDF">
+            <IconButton
+              onClick={() => callback && callback({ type: "pdf" })}
+            >
+              <PictureAsPdfIcon />
             </IconButton>
           </Tooltip>
           <LoginLogoutAvatar user={user} setUser={setUser} setFile={setFile} />

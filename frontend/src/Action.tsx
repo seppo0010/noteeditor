@@ -23,7 +23,10 @@ export interface ActionShowText {
 export interface ActionSave {
   type: "save";
 }
-export type Action = ActionAddCode | ActionShowText | ActionSave;
+export interface ActionPdf {
+  type: "pdf";
+}
+export type Action = ActionAddCode | ActionShowText | ActionSave | ActionPdf ;
 export type ActionOpt = (action: Action) => void;
 
 export interface ActionContextInterface {

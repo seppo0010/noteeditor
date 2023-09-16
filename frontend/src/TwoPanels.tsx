@@ -191,6 +191,9 @@ export default function TwoPanels() {
       if (action.type === "save") {
         save();
       }
+      if (action.type === "pdf") {
+        window.print();
+      }
     },
     [code, getTextarea, save]
   );
