@@ -31,6 +31,10 @@
   }
 }
 
+.katex-html {
+  display: none;
+}
+
 @media print {
   [role=tooltip], .appbar {
     display: none !important;

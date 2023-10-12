@@ -5,6 +5,8 @@ import remarkRehype from "remark-rehype";
 import remarkGfm from 'remark-gfm';
 import rehypeRaw from "rehype-raw";
 import remarkMermaidPlugin from "./mermaid";
+import rehypeKatex from 'rehype-katex'
+import remarkMath from 'remark-math'
 import { VFile } from "vfile";
 import { useAsync } from "react-use";
 import { html } from "property-information";
@@ -51,10 +53,12 @@ export default function Markdown({
 }): JSX.Element {
   const processor = unified()
     .use(remarkParse)
+    .use(remarkMath)
     .use([addBoundingBox(positioningEl ?? null)])
     .use([remarkMermaidPlugin])
     .use(remarkGfm)
     .use(remarkRehype, { allowDangerousHtml: true })
+    .use(rehypeKatex)
     .use([rehypeRaw]);
 
   const { value, loading, error } = useAsync(async () => {
