@@ -39,7 +39,7 @@
   [role=tooltip], .appbar {
     display: none !important;
   }
-  #editor {
+  #snackbar, #editor {
     display: none;
   }
 }

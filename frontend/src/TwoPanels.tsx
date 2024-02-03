@@ -409,6 +409,7 @@ export default function TwoPanels() {
         autoHideDuration={message?.autoHideDuration}
         open={message !== null && showMessage}
         onClose={() => setShowMessage(false)}
+        id="snackbar"
       >
         <Alert severity={message?.severity ?? "error"}>
           {message?.text ?? "Something happened"}
